@@ -76,10 +76,10 @@ contract JettonMaster with Common {
             body: TokenTransferInternal{
                 queryId: msg.queryId,
                 amount: msg.amount,
-                from: myAddress(),
+                from: sender(),
                 responseDestination: msg.responseDestination,
                 forwardTonAmount: msg.forwardTonAmount,
-                forwardPayload: emptyCell(),
+                forwardPayload: msg.forwardPayload,
             }.toCell(),
             code: jettonWallet.code,
             data: jettonWallet.data
@@ -109,7 +109,7 @@ contract JettonMaster with Common {
                 body: TokenTransferInternal{
                     queryId: 0,
                     amount: receiver!!.amount,
-                    from: myAddress(),
+                    from: sender(),
                     responseDestination: sender(),
                     forwardTonAmount: 0,
                     forwardPayload: msg.forwardPayload,

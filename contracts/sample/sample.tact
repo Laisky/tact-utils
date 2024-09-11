@@ -1,3 +1,7 @@
+// =====================================
+// https://testnet.tonviewer.com/transaction/275a294d5a80852ca205449d7cfe4bc015329f0eb4b988a08c4d09bd31556862
+// =====================================
+
 import "../jetton/jetton.tact";
 import "../jetton/messages.tact";
 import "../common/traits.tact";
@@ -14,30 +18,75 @@ contract Sample with Common {
         self.owner = sender();
     }
 
+    // mint new jetton for self, then transfer it to the sender
     receive(msg: MintJettonSample) {
+        let ctx = context();
         self.checkAndUpdateNonce(msg.queryId);
         nativeThrowUnless(codeUnauthorized, sender() == self.owner);
+        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= ton("0.1"));
 
-        let JettonMasterContract = initOf JettonMaster(
+        let jettonMasterContract = initOf JettonMaster(
             myAddress(),
             "https://s3.laisky.com/uploads/2024/09/jetton-sample.json",
         );
 
         self.reserveValue(0);
         send(SendParameters{
-            to: contractAddress(JettonMasterContract),
+            to: contractAddress(jettonMasterContract),
             value: 0,
             mode: SendRemainingBalance,
             bounce: false,
             body: MintJetton{
                 queryId: msg.queryId,
-                amount: ton("1"),
-                receiver: sender(),
-                forwardTonAmount: 0,
-                responseDestination: sender(),
+                amount: msg.amount,
+                receiver: myAddress(),
+                responseDestination: myAddress(),
+                forwardTonAmount: ton("0.1"),
+                forwardPayload: emptyCell(),
             }.toCell(),
-            code: JettonMasterContract.code,
-            data: JettonMasterContract.data,
+            code: jettonMasterContract.code,
+            data: jettonMasterContract.data,
+        });
+    }
+
+    // transfer jetton to the destination
+    receive(msg: TransferNotification) {
+        let jettonMasterContract = initOf JettonMaster(
+            myAddress(),
+            "https://s3.laisky.com/uploads/2024/09/jetton-sample.json",
+        );
+        let jettonWalletContract = initOf JettonWallet(
+            contractAddress(jettonMasterContract),
+            myAddress(),
+        );
+
+        nativeThrowUnless(codeUnauthorized, sender() == contractAddress(jettonWalletContract));
+
+        self.reserveValue(0);
+        send(SendParameters{
+            to: contractAddress(jettonWalletContract),
+            value: 0,
+            mode: SendRemainingBalance,
+            bounce: false,
+            body: TokenTransfer{
+                queryId: msg.queryId,
+                amount: msg.amount,
+                destination: msg.sender,
+                responseDestination: msg.sender,
+                forwardTonAmount: ton("0"),
+            }.toCell(),
+        });
+    }
+
+    receive(msg: Excesses) {
+        send(SendParameters{
+            to: self.owner,
+            value: 0,
+            mode: SendRemainingValue,
+            bounce: false,
+            body: Excesses{
+                queryId: msg.queryId,
+            }.toCell(),
         });
     }
 }
