@@ -1,0 +1,12 @@
+{
+    "projects": [{
+        "name": "tact-utils",
+        "path": "./contracts/sample/sample.tact",
+        "output": "./build",
+        "options":{
+            "debug": true,
+            "external": true,
+            "masterchain": true
+        }
+    }]
+}
