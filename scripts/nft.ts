@@ -12,9 +12,8 @@ export async function run(provider: NetworkProvider): Promise<void> {
             bounce: false,
         },
         {
-            $$type: "MintJettonSample",
+            $$type: "MintNftSample",
             queryId: BigInt(Math.floor(Date.now() / 1000)),
-            amount: toNano("1.3")
         }
     );
 }

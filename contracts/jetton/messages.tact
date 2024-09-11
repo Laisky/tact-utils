@@ -1,56 +1,4 @@
 // =====================================
-// Standard Jettom messages
-//
-// https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md
-// =====================================
-message(0xf8a7ea5) TokenTransfer {
-    queryId: Int as uint64;
-    amount: Int as coins;
-    destination: Address;
-    responseDestination: Address;
-    custom_payload: Cell?;
-    forwardTonAmount: Int as coins;
-    forwardPayload: Cell?;
-}
-
-// transfer tokens between jetton wallets or master contract
-message(0x178d4519) TokenTransferInternal {
-    queryId: Int as uint64;
-    amount: Int as coins;
-    from: Address;
-    responseDestination: Address;
-    forwardTonAmount: Int as coins;
-    forwardPayload: Cell?;
-}
-
-message(0x7362d09c) TransferNotification {
-    queryId: Int as uint64;
-    amount: Int as coins;
-    sender: Address;
-    forwardPayload: Cell?;
-}
-
-message(0x59f07bc) Burn {
-    queryId: Int as uint64;
-    amount: Int as coins;
-    responseDestination: Address;
-    forwardPayload: Cell?;
-}
-
-message(0x7bdd97de) TokenBurnNotification {
-    queryId: Int as uint64;
-    amount: Int as coins;
-    // the owner property seems redundant,
-    // the owner can be extracted from the sender of the message.
-    owner: Address;
-    responseDestination: Address?;
-}
-
-message(0xd53276db) Excesses {
-    queryId: Int as uint64;
-}
-
-// =====================================
 // Project specific messages
 // =====================================
 // MintJetton is a message that allows the owner to mint new tokens
@@ -72,6 +20,7 @@ message(0x4ca83dc8) Withdraw {
 // MultiMint is a message that allows the owner to mint new tokens for
 // multiple receivers and send them to their wallets at once.
 message(0xe78d9033) MultiMint {
+    queryId: Int as uint64;
     receivers: map<Int as uint32, MultiMintReceiver>;
     receiverCount: Int as uint32;
     forwardPayload: Cell?;

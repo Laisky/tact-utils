@@ -6,6 +6,7 @@ import "@stdlib/ownable";
 import "./errcodes.tact";
 import "./messages.tact";
 import "../common/traits.tact";
+import "../common/messages.tact";
 
 
 // =====================================
@@ -48,6 +49,7 @@ contract JettonMaster with Common {
     // this is a non-standard method, it's used to mint new tokens to specified user.
     receive(msg: MintJetton){
         let ctx: Context = context();
+        self.checkAndUpdateNonce(msg.queryId);
         // This is my personal preference: I think nativeThrowUnless more useful
         // than require because it lets you customize the code.
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
@@ -89,6 +91,7 @@ contract JettonMaster with Common {
     // this is a non-standard method, it's used to mint new tokens to multiple users.
     receive(msg: MultiMint){
         let ctx: Context = context();
+        self.checkAndUpdateNonce(msg.queryId);
         nativeThrowUnless(codeNotMintable, self.mintable);
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
 
@@ -107,7 +110,7 @@ contract JettonMaster with Common {
                 value: receiver!!.tonAmount,
                 bounce: false,
                 body: TokenTransferInternal{
-                    queryId: 0,
+                    queryId: msg.queryId,
                     amount: receiver!!.amount,
                     from: sender(),
                     responseDestination: sender(),
@@ -221,6 +224,7 @@ contract JettonWallet with Common {
     // by sending TokenTransfer message to the contract.
     receive(msg: TokenTransfer){
         let ctx: Context = context();
+        self.checkAndUpdateNonce(msg.queryId);
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
         nativeThrowUnless(codeBalanceNotSufficient, self.balance >= msg.amount);
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= msg.forwardTonAmount);
@@ -304,6 +308,7 @@ contract JettonWallet with Common {
     // this is a TEP-074 standard receiver method
     receive(msg: Burn){
         let ctx: Context = context();
+        self.checkAndUpdateNonce(msg.queryId);
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
         nativeThrowUnless(codeInflowValueNotSufficient, msg.amount >= 0);
         nativeThrowUnless(codeBalanceNotSufficient, self.balance >= msg.amount);

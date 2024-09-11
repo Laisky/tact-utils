@@ -15,9 +15,11 @@ import "../common/traits.tact";
 // =====================================
 
 
-contract NftCollection with Txable, Deployable {
+contract NftCollection with Common {
     owner: Address;
-    staticTaxFee: Int = ton("0.01");
+    staticTaxFee: Int as coins = ton("0.01");
+    lockedValue: Int as coins = ton("0");
+    nonce: Int as uint64 = 0;
 
     nextItemIndex: Int as uint256 = 0;
     // collectionContent should follow the format of the TEP-64
@@ -53,28 +55,34 @@ contract NftCollection with Txable, Deployable {
         nativeThrowUnless(codeRoyaltyNumInvalid, self.royalty.denominator > 0);
     }
 
-    bounced(msg: bounced<Mint>) {}
+    bounced(msg: bounced<NFTTransfer>) {
+        self.nextItemIndex = self.nextItemIndex - 1;
+    }
 
     // collection's owner can mint NFTs
-    receive(msg: Mint) {
+    receive(msg: MintNFT) {
         let ctx: Context = context();
-
+        self.checkAndUpdateNonce(msg.queryId);
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= self.staticTaxFee + msg.forwardAmount);
 
         self.mint(msg);
     }
 
-    fun mint(msg: Mint){
+    fun mint(msg: MintNFT){
         let ctx: Context = context();
+
         let nftItemContract = self.getNftItem(self.nextItemIndex);
-        let transferMsg = Transfer {
-            queryId: 0,
+        let transferMsg = NFTTransfer {
+            queryId: msg.queryId,
             newOwner: msg.newOwner,
             responseDestination: sender(),
-            customPayload: self.nextItemIndex.toString().asSlice().asCell(),
             forwardAmount: msg.forwardAmount,
-            forwardPayload: emptyCell(),
+            forwardPayload: msg.forwardPayload,
+            customPayload: NftItemInitiation{
+                individualContent: self.nextItemIndex.toString().asSlice().asCell(),
+                index: self.nextItemIndex,
+            }.toCell(),
         }.toCell();
 
         nativeReserve(myBalance() - ctx.value + self.staticTaxFee, ReserveExact);
@@ -111,25 +119,31 @@ contract NftCollection with Txable, Deployable {
 
     receive("deposit") {}
 
-    receive(msg: Withdraw) {
+    receive("withdraw") {
         nativeThrowUnless(codeUnauthorized, sender() == self.owner);
+
+        nativeReserve(self.lockedValue + self.staticTaxFee, ReserveExact);
         send(SendParameters{
             to: self.owner,
-            value: msg.amount,
+            value: 0,
+            mode: SendRemainingBalance,
             bounce: false,
-            body: msg.amount.toString().asComment(),
+            body: Excesses{
+                queryId: 0
+            }.toCell(),
         });
     }
 
     receive("airdrop") {
         let ctx = context();
-        self.mint(Mint{
+        self.mint(MintNFT{
+            queryId: now(),
             newOwner: sender(),
         });
     }
 
     fun getNftItem(nextItemIndex: Int): StateInit {
-        return initOf NftItem(myAddress(), nextItemIndex);
+        return initOf NftItem(myAddress());
     }
 
     get fun get_collection_data(): CollectionData {
@@ -162,21 +176,22 @@ contract NftCollection with Txable, Deployable {
 }
 
 
-contract NftItem with Txable {
+contract NftItem with Common {
     owner: Address;
     collection: Address;
-    staticTaxFee: Int = ton("0.01");
+    staticTaxFee: Int as coins = ton("0.01");
+    lockedValue: Int as coins = ton("0");
+    nonce: Int as uint64 = 0;
 
-    itemIndex: Int;
+    itemIndex: Int as uint256 = 0;
     initialized: Bool = false;
     individualContent: Cell;
 
-    init(collection: Address, itemIndex: Int){
+    init(collection: Address){
         nativeThrowUnless(codeUnauthorized, sender() == collection);
 
         self.owner = sender();
         self.collection = collection;
-        self.itemIndex = itemIndex;
         self.individualContent = emptyCell();
     }
 
@@ -184,9 +199,10 @@ contract NftItem with Txable {
     bounced(msg: bounced<ReportStaticData>) {}
     bounced(msg: Excesses) {}
 
-    receive(msg: Transfer){
+    receive(msg: NFTTransfer){
         let ctx: Context = context();
 
+        self.checkAndUpdateNonce(msg.queryId);
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= msg.forwardAmount);
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
 
@@ -197,8 +213,11 @@ contract NftItem with Txable {
             nativeThrowUnless(codeUnauthorized, ctx.sender == self.collection);
             nativeThrowUnless(codeNftCustomPayloadInvalid, msg.customPayload != null);
 
+            let data: NftItemInitiation = NftItemInitiation.fromCell(msg.customPayload!!);
+
+            self.individualContent = data.individualContent;
+            self.itemIndex = data.index;
             self.initialized = true;
-            self.individualContent = msg.customPayload!!;
         }
 
         // forward fee
@@ -248,14 +267,18 @@ contract NftItem with Txable {
 
     receive("deposit") {}
 
-    receive(msg: Withdraw) {
+    receive("withdraw") {
         nativeThrowUnless(codeUnauthorized, sender() == self.owner);
+
+        nativeReserve(self.lockedValue + self.staticTaxFee, ReserveExact);
         send(SendParameters{
             to: self.owner,
-            value: msg.amount,
-            // mode: SendRemainingBalance,
+            value: 0,
+            mode: SendRemainingBalance,
             bounce: false,
-            body: msg.amount.toString().asComment(),
+            body: Excesses{
+                queryId: 0
+            }.toCell(),
         });
     }
 

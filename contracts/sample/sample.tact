@@ -4,6 +4,8 @@
 
 import "../jetton/jetton.tact";
 import "../jetton/messages.tact";
+import "../nft/nft.tact";
+import "../nft/messages.tact";
 import "../common/traits.tact";
 import "./messages.tact";
 
@@ -16,6 +18,18 @@ contract Sample with Common {
 
     init() {
         self.owner = sender();
+    }
+
+    receive(msg: Excesses) {
+        send(SendParameters{
+            to: self.owner,
+            value: 0,
+            mode: SendRemainingValue,
+            bounce: false,
+            body: Excesses{
+                queryId: msg.queryId,
+            }.toCell(),
+        });
     }
 
     // mint new jetton for self, then transfer it to the sender
@@ -78,14 +92,64 @@ contract Sample with Common {
         });
     }
 
-    receive(msg: Excesses) {
+    // mint new nft for self, then transfer it to the sender
+    receive(msg: MintNftSample) {
+        let ctx = context();
+        self.checkAndUpdateNonce(msg.queryId);
+        nativeThrowUnless(codeUnauthorized, sender() == self.owner);
+        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= ton("0.1"));
+
+        let nftMasterContract = initOf NftCollection(
+            myAddress(),
+            "https://s3.laisky.com/uploads/2024/09/nft-sample-collection.json",
+            "https://s3.laisky.com/uploads/2024/09/nft-sample-item-",
+            null,
+        );
+
+        self.reserveValue(0);
         send(SendParameters{
-            to: self.owner,
+            to: contractAddress(nftMasterContract),
             value: 0,
-            mode: SendRemainingValue,
+            mode: SendRemainingBalance,
             bounce: false,
-            body: Excesses{
+            body: MintNFT{
                 queryId: msg.queryId,
+                newOwner: myAddress(),
+                forwardAmount: ton("0.1"),
+                forwardPayload: emptyCell(),
+            }.toCell(),
+            code: nftMasterContract.code,
+            data: nftMasterContract.data,
+        });
+    }
+
+    // transfer nft to the destination
+    receive(msg: OwnershipAssigned) {
+        let nftMasterContract = initOf NftCollection(
+            myAddress(),
+            "https://s3.laisky.com/uploads/2024/09/nft-sample-collection.json",
+            "https://s3.laisky.com/uploads/2024/09/nft-sample-item-",
+            null,
+        );
+        let nftItemContract = initOf NftItem(
+            contractAddress(nftMasterContract),
+        );
+
+        nativeThrowUnless(codeUnauthorized, sender() == contractAddress(nftItemContract));
+
+        self.reserveValue(0);
+        send(SendParameters{
+            to: contractAddress(nftItemContract),
+            value: 0,
+            mode: SendRemainingBalance,
+            bounce: false,
+            body: NFTTransfer{
+                queryId: now(),
+                newOwner: self.owner,
+                responseDestination: self.owner,
+                forwardAmount: ton("0"),
+                forwardPayload: emptyCell(),
+                customPayload: emptyCell(),
             }.toCell(),
         });
     }

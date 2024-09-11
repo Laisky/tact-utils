@@ -3,8 +3,6 @@ message MintJettonSample {
     amount: Int as coins;
 }
 
-// message TransferJettonSample {
-//     queryId: Int as uint64;
-//     destination: Address;
-//     amount: Int as coins;
-// }
+message MintNftSample {
+    queryId: Int as uint64;
+}
