@@ -8,6 +8,7 @@ import "../nft/nft.tact";
 import "../nft/messages.tact";
 import "../common/traits.tact";
 import "./messages.tact";
+import "./errcodes.tact";
 
 
 contract Sample with Common {
@@ -83,7 +84,7 @@ contract Sample with Common {
             mode: SendRemainingBalance,
             bounce: false,
             body: TokenTransfer{
-                queryId: msg.queryId,
+                queryId: now(),
                 amount: msg.amount,
                 destination: msg.sender,
                 responseDestination: msg.sender,
@@ -125,6 +126,9 @@ contract Sample with Common {
 
     // transfer nft to the destination
     receive(msg: OwnershipAssigned) {
+        nativeThrowUnless(codeForwardPayloadInvalid, msg.forwardPayload != null);
+        let forwardData = NftItemInitForwardPayload.fromCell(msg.forwardPayload!!);
+
         let nftMasterContract = initOf NftCollection(
             myAddress(),
             "https://s3.laisky.com/uploads/2024/09/nft-sample-collection.json",
@@ -133,6 +137,7 @@ contract Sample with Common {
         );
         let nftItemContract = initOf NftItem(
             contractAddress(nftMasterContract),
+            forwardData.index,
         );
 
         nativeThrowUnless(codeUnauthorized, sender() == contractAddress(nftItemContract));

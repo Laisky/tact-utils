@@ -50,7 +50,6 @@ struct Tep64TokenData {
     content: String;
 }
 
-struct NftItemInitiation {
-    individualContent: Cell;
+struct NftItemInitForwardPayload {
     index: Int as uint256;
 }

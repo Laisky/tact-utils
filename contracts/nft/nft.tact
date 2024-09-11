@@ -78,11 +78,10 @@ contract NftCollection with Common {
             newOwner: msg.newOwner,
             responseDestination: sender(),
             forwardAmount: msg.forwardAmount,
-            forwardPayload: msg.forwardPayload,
-            customPayload: NftItemInitiation{
-                individualContent: self.nextItemIndex.toString().asSlice().asCell(),
+            forwardPayload: NftItemInitForwardPayload{
                 index: self.nextItemIndex,
             }.toCell(),
+            customPayload: self.nextItemIndex.toString().asSlice().asCell(),
         }.toCell();
 
         nativeReserve(myBalance() - ctx.value + self.staticTaxFee, ReserveExact);
@@ -143,7 +142,7 @@ contract NftCollection with Common {
     }
 
     fun getNftItem(nextItemIndex: Int): StateInit {
-        return initOf NftItem(myAddress());
+        return initOf NftItem(myAddress(), nextItemIndex);
     }
 
     get fun get_collection_data(): CollectionData {
@@ -183,16 +182,17 @@ contract NftItem with Common {
     lockedValue: Int as coins = ton("0");
     nonce: Int as uint64 = 0;
 
-    itemIndex: Int as uint256 = 0;
+    itemIndex: Int as uint256;
     initialized: Bool = false;
     individualContent: Cell;
 
-    init(collection: Address){
+    init(collection: Address, index: Int) {
         nativeThrowUnless(codeUnauthorized, sender() == collection);
 
         self.owner = sender();
         self.collection = collection;
         self.individualContent = emptyCell();
+        self.itemIndex = index;
     }
 
     bounced(msg: bounced<OwnershipAssigned>) {}
@@ -213,10 +213,10 @@ contract NftItem with Common {
             nativeThrowUnless(codeUnauthorized, ctx.sender == self.collection);
             nativeThrowUnless(codeNftCustomPayloadInvalid, msg.customPayload != null);
 
-            let data: NftItemInitiation = NftItemInitiation.fromCell(msg.customPayload!!);
+            // let data: NftItemInitiation = NftItemInitiation.fromCell(msg.customPayload!!);
+            // self.itemIndex = data.index;
 
-            self.individualContent = data.individualContent;
-            self.itemIndex = data.index;
+            self.individualContent = msg.customPayload!!;
             self.initialized = true;
         }
 
