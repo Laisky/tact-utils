@@ -4,7 +4,7 @@ A collection of TON Tact templates and tools.
 
 Provides ready-to-use templates for Jetton, NFT, Traits, as well as some commonly used tools.
 
-Clock to view my article on using Tact to implement Jetton & NFTs! 🌟
+[Clock to view my article on using Tact to implement Jetton & NFTs! 🌟](https://blog.laisky.com/p/ton-tact/)
 
 ## Install
 
