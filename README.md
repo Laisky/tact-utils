@@ -30,7 +30,7 @@ npx blueprint build
 
 ### Jetton
 
-- [Sample Transaction](https://testnet.tonviewer.com/transaction/2816e757a499dad6b03be4be0ba5cb18186a49fa080f466526caaf5b43974176)
+- [Sample Transaction](https://testnet.tonviewer.com/transaction/5fd248e34b3cb728aff786e990ac45324a2f070d89d9356fdac47fa61444813a)
 
 ```sh
 npx blueprint run --testnet --tonconnect jetton
@@ -40,7 +40,7 @@ npx blueprint run --testnet --tonconnect jetton
 
 ### NFT
 
-- [Sample Transaction](https://testnet.tonviewer.com/transaction/8e9ee64b26249eff2e70579c7a1fc090290d33e25a0c40ee22429b0d277ec451)
+- [Sample Transaction](https://testnet.tonviewer.com/transaction/aef4b07e37d012e9b8051c1c4f2bcb263194b72d7f874218271595824b62a0bd)
 
 ```sh
 npx blueprint run --testnet --tonconnect nft
