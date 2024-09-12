@@ -26,13 +26,8 @@ trait Txable with OwnableTransferable {
     }
 }
 
-
-// Common is the common trait that will be used by the master contract
-trait Common with Txable {
-    owner: Address;
+trait Nonce {
     nonce: Int;
-    staticTaxFee: Int;
-    lockedValue: Int;
 
     get fun nonce(): Int {
         return self.nonce;
@@ -47,6 +42,14 @@ trait Common with Txable {
         self.nonce = self.nonce + 1;
         return self.nonce;
     }
+}
+
+
+// Common is the common trait that will be used by the master contract
+trait Common with Txable {
+    owner: Address;
+    staticTaxFee: Int;
+    lockedValue: Int;
 
     fun reserveValue(delta: Int) {
         let ctx = context();

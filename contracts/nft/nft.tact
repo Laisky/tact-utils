@@ -19,7 +19,6 @@ contract NftCollection with Common {
     owner: Address;
     staticTaxFee: Int as coins = ton("0.01");
     lockedValue: Int as coins = ton("0");
-    nonce: Int as uint64 = 0;
 
     nextItemIndex: Int as uint256 = 0;
     // collectionContent should follow the format of the TEP-64
@@ -62,7 +61,6 @@ contract NftCollection with Common {
     // collection's owner can mint NFTs
     receive(msg: MintNFT) {
         let ctx: Context = context();
-        self.checkAndUpdateNonce(msg.queryId);
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= self.staticTaxFee + msg.forwardAmount);
 
@@ -133,14 +131,6 @@ contract NftCollection with Common {
         });
     }
 
-    receive("airdrop") {
-        let ctx = context();
-        self.mint(MintNFT{
-            queryId: now(),
-            newOwner: sender(),
-        });
-    }
-
     fun getNftItem(nextItemIndex: Int): StateInit {
         return initOf NftItem(myAddress(), nextItemIndex);
     }
@@ -180,7 +170,6 @@ contract NftItem with Common {
     collection: Address;
     staticTaxFee: Int as coins = ton("0.01");
     lockedValue: Int as coins = ton("0");
-    nonce: Int as uint64 = 0;
 
     itemIndex: Int as uint256;
     initialized: Bool = false;
@@ -202,7 +191,6 @@ contract NftItem with Common {
     receive(msg: NFTTransfer){
         let ctx: Context = context();
 
-        self.checkAndUpdateNonce(msg.queryId);
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= msg.forwardAmount);
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
 

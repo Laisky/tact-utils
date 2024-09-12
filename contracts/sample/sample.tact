@@ -10,11 +10,11 @@ import "../common/traits.tact";
 import "./messages.tact";
 import "./errcodes.tact";
 
+
 contract SampleMaster with Common {
     owner: Address;
-    staticTaxFee: Int = ton("0.01");
+    staticTaxFee: Int as coins = ton("0.01");
     lockedValue: Int as coins = 0;
-    nonce: Int = 0;
 
     init() {
         self.owner = sender();
@@ -32,7 +32,6 @@ contract SampleMaster with Common {
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= ton("0.1"));
 
         let sampleContract = self.getSample(sender());
-        msg.queryId = now();
 
         self.reserveValue(0);
         send(SendParameters{
@@ -51,7 +50,6 @@ contract SampleMaster with Common {
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= ton("0.1"));
 
         let sampleContract = self.getSample(sender());
-        msg.queryId = now();
 
         self.reserveValue(0);
         send(SendParameters{
@@ -64,15 +62,20 @@ contract SampleMaster with Common {
             code: sampleContract.code,
         });
     }
+    receive("deposit") {}
 
     receive("withdraw") {
         nativeThrowUnless(codeUnauthorized, sender() == self.owner);
-        nativeReserve(self.staticTaxFee, ReserveExact);
+
+        nativeReserve(self.lockedValue + self.staticTaxFee, ReserveExact);
         send(SendParameters{
             to: self.owner,
             value: 0,
             mode: SendRemainingBalance,
             bounce: false,
+            body: Excesses{
+                queryId: 0
+            }.toCell(),
         });
     }
 }
@@ -81,9 +84,8 @@ contract SampleMaster with Common {
 contract Sample with Common {
     owner: Address;
     master: Address;
-    staticTaxFee: Int = ton("0.01");
+    staticTaxFee: Int as coins = ton("0.01");
     lockedValue: Int as coins = 0;
-    nonce: Int = 0;
 
     init(master: Address, owner: Address) {
         self.owner = owner;
@@ -138,7 +140,6 @@ contract Sample with Common {
     // mint new jetton for self, then transfer it to the sender
     receive(msg: MintJettonSample) {
         let ctx = context();
-        self.checkAndUpdateNonce(msg.queryId);
         nativeThrowUnless(codeUnauthorized, sender() == self.master);
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= ton("0.1"));
 
@@ -180,7 +181,7 @@ contract Sample with Common {
             mode: SendRemainingBalance,
             bounce: false,
             body: TokenTransfer{
-                queryId: now(),
+                queryId: msg.queryId,
                 amount: msg.amount,
                 destination: self.owner,
                 responseDestination: self.owner,
@@ -192,7 +193,6 @@ contract Sample with Common {
     // mint new nft for self, then transfer it to the sender
     receive(msg: MintNftSample) {
         let ctx = context();
-        self.checkAndUpdateNonce(msg.queryId);
         nativeThrowUnless(codeUnauthorized, sender() == self.master);
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= ton("0.1"));
 
@@ -245,7 +245,7 @@ contract Sample with Common {
             mode: SendRemainingBalance,
             bounce: false,
             body: NFTTransfer{
-                queryId: now(),
+                queryId: msg.queryId,
                 newOwner: self.owner,
                 responseDestination: self.owner,
                 forwardAmount: ton("0"),
@@ -255,14 +255,20 @@ contract Sample with Common {
         });
     }
 
+    receive("deposit") {}
+
     receive("withdraw") {
         nativeThrowUnless(codeUnauthorized, sender() == self.owner);
-        nativeReserve(self.staticTaxFee, ReserveExact);
+
+        nativeReserve(self.lockedValue + self.staticTaxFee, ReserveExact);
         send(SendParameters{
             to: self.owner,
             value: 0,
             mode: SendRemainingBalance,
             bounce: false,
+            body: Excesses{
+                queryId: 0
+            }.toCell(),
         });
     }
 }
