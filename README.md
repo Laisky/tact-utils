@@ -6,6 +6,12 @@ Provides ready-to-use templates for Jetton, NFT, Traits, as well as some commonl
 
 [Clock to view my article on using Tact to implement Jetton & NFTs! 🌟](https://blog.laisky.com/p/ton-tact/)
 
+**Still undergoing frequent updates!**
+
+## Demo
+
+<https://s3.laisky.com/public/nft/connect/demo/index.html>
+
 ## Install
 
 Install nodejs: <https://github.com/nodesource/distributions>
@@ -24,7 +30,7 @@ npx blueprint build
 
 ### Jetton
 
-- [Sample Transaction](https://testnet.tonviewer.com/transaction/275a294d5a80852ca205449d7cfe4bc015329f0eb4b988a08c4d09bd31556862)
+- [Sample Transaction](https://testnet.tonviewer.com/transaction/2816e757a499dad6b03be4be0ba5cb18186a49fa080f466526caaf5b43974176)
 
 ```sh
 npx blueprint run --testnet --tonconnect jetton
@@ -41,3 +47,13 @@ npx blueprint run --testnet --tonconnect nft
 ```
 
 ![NFT Sample](https://s3.laisky.com/uploads/2024/09/nft-sample-shot.png)
+
+## Helpful Tools
+
+- [TON Converter](https://ario.laisky.com/alias/ton-converter)
+- [Free permanent file storage.](https://ario.laisky.com/alias/doc)
+
+## Helpful Communites
+
+- [TON Tact Language Chat](https://t.me/tactlang)
+- [TON Dev Chat (EN)](https://t.me/tondev_eng)

@@ -10,8 +10,7 @@ import "../common/traits.tact";
 import "./messages.tact";
 import "./errcodes.tact";
 
-
-contract Sample with Common {
+contract SampleMaster with Common {
     owner: Address;
     staticTaxFee: Int = ton("0.01");
     lockedValue: Int as coins = 0;
@@ -19,6 +18,76 @@ contract Sample with Common {
 
     init() {
         self.owner = sender();
+    }
+
+    fun getSample(owner: Address): StateInit {
+        return initOf Sample(
+            myAddress(),
+            owner,
+        );
+    }
+
+    receive(msg: MintJettonSample) {
+        let ctx = context();
+        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= ton("0.1"));
+
+        let sampleContract = self.getSample(sender());
+        msg.queryId = now();
+
+        self.reserveValue(0);
+        send(SendParameters{
+            to: contractAddress(sampleContract),
+            value: 0,
+            mode: SendRemainingBalance,
+            bounce: false,
+            body: msg.toCell(),
+            data: sampleContract.data,
+            code: sampleContract.code,
+        });
+    }
+
+    receive(msg: MintNftSample) {
+        let ctx = context();
+        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= ton("0.1"));
+
+        let sampleContract = self.getSample(sender());
+        msg.queryId = now();
+
+        self.reserveValue(0);
+        send(SendParameters{
+            to: contractAddress(sampleContract),
+            value: 0,
+            mode: SendRemainingBalance,
+            bounce: false,
+            body: msg.toCell(),
+            data: sampleContract.data,
+            code: sampleContract.code,
+        });
+    }
+
+    receive("withdraw") {
+        nativeThrowUnless(codeUnauthorized, sender() == self.owner);
+        nativeReserve(self.staticTaxFee, ReserveExact);
+        send(SendParameters{
+            to: self.owner,
+            value: 0,
+            mode: SendRemainingBalance,
+            bounce: false,
+        });
+    }
+}
+
+
+contract Sample with Common {
+    owner: Address;
+    master: Address;
+    staticTaxFee: Int = ton("0.01");
+    lockedValue: Int as coins = 0;
+    nonce: Int = 0;
+
+    init(master: Address, owner: Address) {
+        self.owner = owner;
+        self.master = master;
     }
 
     fun getJettonMaster(): StateInit {
@@ -70,7 +139,7 @@ contract Sample with Common {
     receive(msg: MintJettonSample) {
         let ctx = context();
         self.checkAndUpdateNonce(msg.queryId);
-        nativeThrowUnless(codeUnauthorized, sender() == self.owner);
+        nativeThrowUnless(codeUnauthorized, sender() == self.master);
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= ton("0.1"));
 
         let jettonMasterContract = self.getJettonMaster();
@@ -113,8 +182,8 @@ contract Sample with Common {
             body: TokenTransfer{
                 queryId: now(),
                 amount: msg.amount,
-                destination: msg.sender,
-                responseDestination: msg.sender,
+                destination: self.owner,
+                responseDestination: self.owner,
                 forwardTonAmount: ton("0"),
             }.toCell(),
         });
@@ -124,7 +193,7 @@ contract Sample with Common {
     receive(msg: MintNftSample) {
         let ctx = context();
         self.checkAndUpdateNonce(msg.queryId);
-        nativeThrowUnless(codeUnauthorized, sender() == self.owner);
+        nativeThrowUnless(codeUnauthorized, sender() == self.master);
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= ton("0.1"));
 
         let nftMasterContract = initOf NftCollection(
@@ -183,6 +252,17 @@ contract Sample with Common {
                 forwardPayload: emptyCell(),
                 customPayload: emptyCell(),
             }.toCell(),
+        });
+    }
+
+    receive("withdraw") {
+        nativeThrowUnless(codeUnauthorized, sender() == self.owner);
+        nativeReserve(self.staticTaxFee, ReserveExact);
+        send(SendParameters{
+            to: self.owner,
+            value: 0,
+            mode: SendRemainingBalance,
+            bounce: false,
         });
     }
 }
