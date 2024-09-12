@@ -1,0 +1,24 @@
+{
+    "name": "downloads",
+    "version": "1.0.0",
+    "main": "index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "keywords": [],
+    "author": "",
+    "license": "ISC",
+    "description": "",
+    "dependencies": {
+        "@ton/ton": "^15.0.0",
+        "@tonconnect/ui": "^2.0.9",
+        "buffer": "^6.0.3"
+    },
+    "devDependencies": {
+        "@babel/core": "^7.25.2",
+        "@babel/preset-env": "^7.25.4",
+        "babel-loader": "^9.1.3",
+        "webpack": "^5.94.0",
+        "webpack-cli": "^5.1.4"
+    }
+}

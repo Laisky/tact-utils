@@ -31,13 +31,10 @@ contract JettonMaster with Common {
     totalSupply: Int as coins;
     mintable: Bool;
 
-    init(owner: Address, contentUrl: String){
+    init(owner: Address, content: Tep64TokenData){
         self.owner = owner;
 
-        self.content = Metadata{
-            flag: 1,
-            content: contentUrl,
-        }.toCell();
+        self.content = content.toCell();
         self.totalSupply = 0;
         self.mintable = true;
     }
@@ -60,7 +57,6 @@ contract JettonMaster with Common {
     // this is a non-standard method, it's used to mint new tokens to multiple users.
     fun mint(msg: MintJetton){
         let ctx = context();
-        self.checkAndUpdateNonce(msg.queryId);
         nativeThrowUnless(codeNotMintable, self.mintable);
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= msg.forwardTonAmount);
 
@@ -154,19 +150,6 @@ contract JettonMaster with Common {
             mode: SendRemainingBalance,
             bounce: false,
             body: "withdraw".asComment(),
-        });
-    }
-
-    // this is a non-standard method, it's used by some experimental projects.
-    receive("airdrop") {
-        let ctx = context();
-
-        self.mint(MintJetton{
-            queryId: now(),
-            amount: ton("1"),
-            receiver: sender(),
-            forwardTonAmount: ton("0"),
-            responseDestination: sender(),
         });
     }
 

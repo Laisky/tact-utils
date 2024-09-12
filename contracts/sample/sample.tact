@@ -21,6 +21,39 @@ contract Sample with Common {
         self.owner = sender();
     }
 
+    fun getJettonMaster(): StateInit {
+        return initOf JettonMaster(
+            myAddress(),
+            Tep64TokenData{
+                flag: 1,
+                content: "https://s3.laisky.com/uploads/2024/09/jetton-sample.json",
+            },
+        );
+    }
+
+    bounced(msg: bounced<MintJetton>) {
+        send(SendParameters{
+            to: self.owner,
+            value: 0,
+            mode: SendRemainingValue,
+            bounce: false,
+            body: Excesses{
+                queryId: msg.queryId,
+            }.toCell(),
+        });
+    }
+    bounced(msg: bounced<MintNFT>) {
+        send(SendParameters{
+            to: self.owner,
+            value: 0,
+            mode: SendRemainingValue,
+            bounce: false,
+            body: Excesses{
+                queryId: msg.queryId,
+            }.toCell(),
+        });
+    }
+
     receive(msg: Excesses) {
         send(SendParameters{
             to: self.owner,
@@ -40,17 +73,14 @@ contract Sample with Common {
         nativeThrowUnless(codeUnauthorized, sender() == self.owner);
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= ton("0.1"));
 
-        let jettonMasterContract = initOf JettonMaster(
-            myAddress(),
-            "https://s3.laisky.com/uploads/2024/09/jetton-sample.json",
-        );
+        let jettonMasterContract = self.getJettonMaster();
 
         self.reserveValue(0);
         send(SendParameters{
             to: contractAddress(jettonMasterContract),
             value: 0,
             mode: SendRemainingBalance,
-            bounce: false,
+            bounce: true,
             body: MintJetton{
                 queryId: msg.queryId,
                 amount: msg.amount,
@@ -66,10 +96,7 @@ contract Sample with Common {
 
     // transfer jetton to the destination
     receive(msg: TransferNotification) {
-        let jettonMasterContract = initOf JettonMaster(
-            myAddress(),
-            "https://s3.laisky.com/uploads/2024/09/jetton-sample.json",
-        );
+        let jettonMasterContract = self.getJettonMaster();
         let jettonWalletContract = initOf JettonWallet(
             contractAddress(jettonMasterContract),
             myAddress(),
@@ -112,7 +139,7 @@ contract Sample with Common {
             to: contractAddress(nftMasterContract),
             value: 0,
             mode: SendRemainingBalance,
-            bounce: false,
+            bounce: true,
             body: MintNFT{
                 queryId: msg.queryId,
                 newOwner: myAddress(),

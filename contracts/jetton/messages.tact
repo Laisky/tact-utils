@@ -3,7 +3,7 @@
 // =====================================
 // MintJetton is a message that allows the owner to mint new tokens
 // and send them to a specified walletOwner.
-message(0xa32a5c5f) MintJetton {
+message(0xa593886f) MintJetton {
     // queryId should be unique and monotonically increasing.
     queryId: Int as uint64;
     amount: Int;
@@ -42,14 +42,6 @@ struct JettonMasterData {
     owner: Address;
     content: Cell;
     walletCode: Cell;
-}
-
-struct Metadata {
-    // https://github.com/ton-blockchain/TEPs/blob/master/text/0064-token-data-standard.md#content-representation
-    // 0 for onchain, 1 for offchain
-    flag: Int as uint8;
-    // if flag is 1, then the content is a URL to the offchain metadata.
-    content: String;
 }
 
 struct MultiMintReceiver {
