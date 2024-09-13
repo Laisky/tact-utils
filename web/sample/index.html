@@ -25,6 +25,29 @@
 
         .op {
             margin-top: 10px;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr); /* Two columns */
+            gap: 20px; /* Increase spacing between buttons */
+        }
+
+        .op button {
+            padding: 10px 20px; /* Increase padding for better visibility */
+            font-size: 16px; /* Increase font size for better visibility */
+            background-color: #007bff; /* Button background color */
+            color: white; /* Button text color */
+            border: none; /* Remove border */
+            border-radius: 5px; /* Rounded corners */
+            cursor: pointer; /* Pointer cursor on hover */
+            transition: background-color 0.3s; /* Smooth transition for background color */
+        }
+
+        .op button:disabled {
+            background-color: #cccccc; /* Disabled button background color */
+            cursor: not-allowed; /* Not-allowed cursor for disabled button */
+        }
+
+        .op button:hover:not(:disabled) {
+            background-color: #0056b3; /* Darker background color on hover */
         }
 
         #footer {
@@ -46,7 +69,7 @@
     </div>
 
     <!-- <script type="module" src="./dist/bundle.js"></script> -->
-    <script type="module" src="https://s3.laisky.com/public/nft/connect/demo/bundle.js?=v10"></script>
+    <script type="module" src="https://s3.laisky.com/public/nft/connect/demo/bundle.js?=v11"></script>
 </body>
 
 </html>
