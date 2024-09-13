@@ -174,18 +174,22 @@ contract Sample with Common {
         });
     }
 
+    fun getNftCollectionContract(): StateInit {
+        return initOf NftCollectionTemplate(
+            myAddress(),
+            "https://s3.laisky.com/uploads/2024/09/nft-sample-collection.json",
+            "https://s3.laisky.com/uploads/2024/09/nft-sample-item-",
+            null,
+        );
+    }
+
     // mint new nft for self, then transfer it to the sender
     receive(msg: MintNftSample) {
         let ctx = context();
         nativeThrowUnless(codeUnauthorized, sender() == self.master);
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= ton("0.1"));
 
-        let nftMasterContract = initOf NftCollection(
-            myAddress(),
-            "https://s3.laisky.com/uploads/2024/09/nft-sample-collection.json",
-            "https://s3.laisky.com/uploads/2024/09/nft-sample-item-",
-            null,
-        );
+        let nftMasterContract = self.getNftCollectionContract();
 
         self.reserveValue(0);
         send(SendParameters{
@@ -209,13 +213,8 @@ contract Sample with Common {
         nativeThrowUnless(codeForwardPayloadInvalid, msg.forwardPayload != null);
         let forwardData = NftItemInitForwardPayload.fromCell(msg.forwardPayload!!);
 
-        let nftMasterContract = initOf NftCollection(
-            myAddress(),
-            "https://s3.laisky.com/uploads/2024/09/nft-sample-collection.json",
-            "https://s3.laisky.com/uploads/2024/09/nft-sample-item-",
-            null,
-        );
-        let nftItemContract = initOf NftItem(
+        let nftMasterContract = self.getNftCollectionContract();
+        let nftItemContract = initOf NftItemTemplate(
             contractAddress(nftMasterContract),
             forwardData.index,
         );

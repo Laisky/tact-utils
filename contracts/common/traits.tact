@@ -3,20 +3,20 @@ import "@stdlib/ownable";
 import "./errcodes.tact";
 import "./messages.tact";
 
-// SetStaticTaxFee is the message that used to set the static tax fee.
-message(0x1509a420) SetStaticTaxFee {
-    staticTaxFee: Int;
-}
 
 trait Txable with OwnableTransferable {
     owner: Address;
-    staticTaxFee: Int = ton("0");
+    staticTaxFee: Int;
+
+    receive(msg: SetStaticTaxFee){
+        self.receiveSetStaticTaxFee(msg);
+    }
 
     get fun staticTaxFee(): Int {
         return self.staticTaxFee;
     }
 
-    receive(msg: SetStaticTaxFee){
+    virtual fun receiveSetStaticTaxFee(msg: SetStaticTaxFee){
         nativeThrowUnless(codeUnauthorized, sender() == self.owner);
 
         self.staticTaxFee = msg.staticTaxFee;
@@ -35,12 +35,12 @@ trait Nonce {
         return self.nonce;
     }
 
-    fun checkAndUpdateNonce(receivedNonce: Int){
+    virtual fun checkAndUpdateNonce(receivedNonce: Int){
         nativeThrowUnless(codeNonceInvalid, receivedNonce > self.nonce);
         self.nonce = receivedNonce;
     }
 
-    fun getNonce(): Int {
+    virtual fun getNonce(): Int {
         self.nonce = self.nonce + 1;
         return self.nonce;
     }
@@ -53,16 +53,6 @@ trait Common with Txable {
     staticTaxFee: Int;
     lockedValue: Int;
 
-    fun reserveValue(delta: Int) {
-        let ctx = context();
-        let val = max(myBalance() - ctx.value + self.staticTaxFee, self.lockedValue + self.staticTaxFee);
-        nativeReserve(val + delta, ReserveExact);
-    }
-
-    virtual fun receiveExcesses(msg: Excesses) {
-        return;
-    }
-
     // this is a non-standard method, it's used to deposit coins to the wallet.
     receive(msg: Excesses) {
         self.receiveExcesses(msg);
@@ -71,7 +61,11 @@ trait Common with Txable {
     // this is a non-standard method,
     // allows the owner to withdraw tokens from the wallet.
     receive("withdraw"){
-        let ctx: Context = context();
+        self.ReceiveWithdraw();
+    }
+
+    virtual fun ReceiveWithdraw() {
+                let ctx: Context = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
         nativeThrowUnless(codeBalanceNotSufficient, myBalance() > self.lockedValue);
 
@@ -85,5 +79,15 @@ trait Common with Txable {
                 queryId: 0,
             }.toCell(),
         });
+    }
+
+    virtual fun reserveValue(delta: Int) {
+        let ctx = context();
+        let val = max(myBalance() - ctx.value + self.staticTaxFee, self.lockedValue + self.staticTaxFee);
+        nativeReserve(val + delta, ReserveExact);
+    }
+
+    virtual fun receiveExcesses(msg: Excesses) {
+        return;
     }
 }

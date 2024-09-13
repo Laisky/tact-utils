@@ -131,3 +131,8 @@ struct Tep64TokenData {
     flag: Int as uint8;
     content: String;
 }
+
+// SetStaticTaxFee is the message that used to set the static tax fee.
+message(0x1509a420) SetStaticTaxFee {
+    staticTaxFee: Int as coins;
+}

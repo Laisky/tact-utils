@@ -29,7 +29,7 @@ contract JettonMasterTemplate with JettonMaster {
     totalSupply: Int as coins;
     mintable: Bool;
 
-    init(owner: Address, content: Tep64TokenData){
+    init(owner: Address, content: Tep64TokenData) {
         self.owner = owner;
 
         self.content = content.toCell();
@@ -53,7 +53,7 @@ contract JettonWalletTemplate with JettonWallet {
 
     // The parameters of the init function should not be too complex,
     // as it will be called frequently when generating the jetton wallet address.
-    init(master: Address, owner: Address){
+    init(master: Address, owner: Address) {
         self.balance = 0;
         self.owner = owner;
         self.master = master;
@@ -74,6 +74,27 @@ trait JettonMaster with Common {
     content: Cell;
     totalSupply: Int;
     mintable: Bool;
+
+    // this is a non-standard method, it's used to mint new tokens to specified user.
+    receive(msg: MintJetton) {
+        self.receiveMintJetton(msg);
+    }
+
+    // this is a non-standard method, it's used to mint new tokens to multiple users.
+    receive(msg: MultiMint) {
+        self.receiveMultiMint(msg);
+    }
+
+    // this is a TEP-074 standard getter method
+    get fun get_jetton_data(): JettonMasterData {
+        return self.getJettonData();
+    }
+
+    // this is a TEP-074 standard getter method,
+    // generate the jetton wallet address for any user.
+    get fun get_wallet_address(owner: Address): Address {
+        return self.getWalletAddress(owner);
+    }
 
     virtual fun getJettonContract(owner: Address): StateInit {
         return initOf JettonWalletTemplate(myAddress(), owner);
@@ -109,8 +130,7 @@ trait JettonMaster with Common {
         });
     }
 
-    // this is a non-standard method, it's used to mint new tokens to specified user.
-    receive(msg: MintJetton){
+    virtual fun receiveMintJetton(msg: MintJetton) {
         let ctx: Context = context();
         // This is my personal preference: I think nativeThrowUnless more useful
         // than require because it lets you customize the code.
@@ -119,13 +139,7 @@ trait JettonMaster with Common {
         self.mint(msg);
     }
 
-
-    // this is a non-standard method, it's used to mint new tokens to multiple users.
-    receive(msg: MultiMint){
-        self.receiveMultiMint(msg);
-    }
-
-    virtual fun receiveMultiMint(msg: MultiMint){
+    virtual fun receiveMultiMint(msg: MultiMint) {
         let ctx: Context = context();
         nativeThrowUnless(codeNotMintable, self.mintable);
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
@@ -172,8 +186,7 @@ trait JettonMaster with Common {
         });
     }
 
-    // this is a TEP-074 standard getter method
-    get fun get_jetton_data(): JettonMasterData {
+    virtual fun getJettonData(): JettonMasterData {
         return JettonMasterData{
             totalSupply: self.totalSupply,
             mintable: self.mintable,
@@ -183,9 +196,7 @@ trait JettonMaster with Common {
         };
     }
 
-    // this is a TEP-074 standard getter method,
-    // generate the jetton wallet address for any user.
-    get fun get_wallet_address(owner: Address): Address {
+    virtual fun getWalletAddress(owner: Address): Address {
         return contractAddress(self.getJettonContract(owner));
     }
 }
@@ -204,22 +215,38 @@ trait JettonWallet with Common {
     staticTaxFee: Int;
     lockedValue: Int;
 
+    // this is a TEP-074 standard receiver method,
+    // owner can transfer tokens to another jetton wallet
+    // by sending TokenTransfer message to the contract.
+    receive(msg: TokenTransfer) {
+        self.receiveTokenTransfer(msg);
+    }
+
+    // this is unspecified by standard, but suggested format of internal message.
+    // receive tokens from another jetton wallet
+    receive(msg: TokenTransferInternal) {
+        self.receiveTokenTransferInternal(msg);
+    }
+
+    // this is a TEP-074 standard receiver method
+    receive(msg: Burn) {
+        self.receiveBurn(msg);
+    }
+
+    // this is a TEP-074 standard getter method
+    get fun get_wallet_data(): JettonWalletData {
+        return self.getWalletData();
+    }
+
+    bounced(src: bounced<TokenTransferInternal>) {
+        self.balance = self.balance + src.amount;
+    }
+
     virtual fun getJettonContract(owner: Address): StateInit {
         return initOf JettonWalletTemplate(self.master, owner);
     }
 
-    bounced(src: bounced<TokenTransferInternal>){
-        self.balance = self.balance + src.amount;
-    }
-
-    // this is a TEP-074 standard receiver method,
-    // owner can transfer tokens to another jetton wallet
-    // by sending TokenTransfer message to the contract.
-    receive(msg: TokenTransfer){
-        self.receiveTokenTransfer(msg);
-    }
-
-    virtual fun receiveTokenTransfer(msg: TokenTransfer){
+    virtual fun receiveTokenTransfer(msg: TokenTransfer) {
         let ctx: Context = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
         nativeThrowUnless(codeBalanceNotSufficient, self.balance >= msg.amount);
@@ -251,12 +278,6 @@ trait JettonWallet with Common {
             code: jettonContract.code,
             data: jettonContract.data
         });
-    }
-
-    // this is unspecified by standard, but suggested format of internal message.
-    // receive tokens from another jetton wallet
-    receive(msg: TokenTransferInternal){
-        self.receiveTokenTransferInternal(msg);
     }
 
     virtual fun receiveTokenTransferInternal(msg: TokenTransferInternal){
@@ -305,12 +326,7 @@ trait JettonWallet with Common {
         });
     }
 
-    // this is a TEP-074 standard receiver method
-    receive(msg: Burn){
-        self.receiveBurn(msg);
-    }
-
-    virtual fun receiveBurn(msg: Burn){
+    virtual fun receiveBurn(msg: Burn) {
         let ctx: Context = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
         nativeThrowUnless(codeInflowValueNotSufficient, msg.amount >= 0);
@@ -331,8 +347,7 @@ trait JettonWallet with Common {
         });
     }
 
-    // this is a TEP-074 standard getter method
-    get fun get_wallet_data(): JettonWalletData {
+    virtual fun getWalletData(): JettonWalletData {
         return JettonWalletData{
             balance: self.balance,
             owner: self.owner,
