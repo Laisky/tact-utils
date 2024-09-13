@@ -2,11 +2,12 @@
 // https://testnet.tonviewer.com/transaction/275a294d5a80852ca205449d7cfe4bc015329f0eb4b988a08c4d09bd31556862
 // =====================================
 
+import "../common/traits.tact";
 import "../jetton/jetton.tact";
 import "../jetton/messages.tact";
 import "../nft/nft.tact";
 import "../nft/messages.tact";
-import "../common/traits.tact";
+
 import "./messages.tact";
 import "./errcodes.tact";
 
@@ -175,7 +176,7 @@ contract Sample with Common {
     }
 
     fun getNftCollectionContract(): StateInit {
-        return initOf NftCollectionTemplate(
+        return initOf NftCollectionSample(
             myAddress(),
             "https://s3.laisky.com/uploads/2024/09/nft-sample-collection.json",
             "https://s3.laisky.com/uploads/2024/09/nft-sample-item-",
@@ -236,5 +237,59 @@ contract Sample with Common {
                 customPayload: emptyCell(),
             }.toCell(),
         });
+    }
+}
+
+
+contract NftCollectionSample with NftCollection {
+    owner: Address;
+    staticTaxFee: Int as coins = ton("0.01");
+    lockedValue: Int as coins = ton("0");
+
+    nextItemIndex: Int as uint256 = 0;
+    // collectionContent should follow the format of the TEP-64
+    // https://github.com/ton-blockchain/TEPs/blob/master/text/0064-token-data-standard.md
+    collectionContent: Cell;
+    // itemContentUrlPrefix is the prefix of the individual NFT's content url.
+    // e.g. "https://s3.laisky.com/public/nft/ton-demo/"
+    itemContentUrlPrefix: String;
+    royalty: RoyaltyParams;
+
+    init(owner: Address,
+        collectionContentUrl: String,
+        itemContentUrlPrefix: String,
+        royalty: RoyaltyParams?) {
+        self.owner = owner;
+        self.collectionContent = Tep64TokenData{
+            flag: 1,
+            content: collectionContentUrl,
+        }.toCell();
+        self.itemContentUrlPrefix = itemContentUrlPrefix;
+
+        if (royalty != null) {
+            self.royalty = royalty!!;
+        } else {
+            self.royalty = RoyaltyParams{
+                numerator: 0,
+                denominator: 10,
+                destination: owner,
+            };
+        }
+
+        nativeThrowUnless(codeRoyaltyNumInvalid, self.royalty.numerator < self.royalty.denominator);
+        nativeThrowUnless(codeRoyaltyNumInvalid, self.royalty.denominator > 0);
+    }
+
+    // I only prepare 6 items for the demo,
+    // so I just return the content by the index % 6.
+    override fun getNftContent(index: Int, individualContent: Cell): Cell {
+        return Tep64TokenData{
+            flag: 1,
+            content: beginString()
+                .concat(self.itemContentUrlPrefix)
+                .concat((index % 6).toString())
+                .concat(".json")
+                .toString(),
+        }.toCell();
     }
 }
