@@ -1,20 +1,17 @@
+import "../common/messages.tact";
+
 // =====================================
 // Project specific messages
 // =====================================
 // MintJetton is a message that allows the owner to mint new tokens
 // and send them to a specified walletOwner.
 message(0xa593886f) MintJetton {
-    // queryId should be unique and monotonically increasing.
     queryId: Int as uint64;
     amount: Int;
     receiver: Address;
     responseDestination: Address;
     forwardTonAmount: Int as coins;
     forwardPayload: Cell?;
-}
-
-// Withdraw is a message that allows the owner to withdraw tokens from the wallet.
-message(0x4ca83dc8) Withdraw {
 }
 
 // MultiMint is a message that allows the owner to mint new tokens for
@@ -24,6 +21,11 @@ message(0xe78d9033) MultiMint {
     receivers: map<Int as uint32, MultiMintReceiver>;
     receiverCount: Int as uint32;
     forwardPayload: Cell?;
+}
+
+message UpdateJettonContent {
+    queryId: Int as uint64;
+    content: Tep64TokenData
 }
 
 // =====================================

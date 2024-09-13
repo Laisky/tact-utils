@@ -62,22 +62,6 @@ contract SampleMaster with Common {
             code: sampleContract.code,
         });
     }
-    receive("deposit") {}
-
-    receive("withdraw") {
-        nativeThrowUnless(codeUnauthorized, sender() == self.owner);
-
-        nativeReserve(self.lockedValue + self.staticTaxFee, ReserveExact);
-        send(SendParameters{
-            to: self.owner,
-            value: 0,
-            mode: SendRemainingBalance,
-            bounce: false,
-            body: Excesses{
-                queryId: 0
-            }.toCell(),
-        });
-    }
 }
 
 
@@ -93,7 +77,7 @@ contract Sample with Common {
     }
 
     fun getJettonMaster(): StateInit {
-        return initOf JettonMaster(
+        return initOf JettonMasterTemplate(
             myAddress(),
             Tep64TokenData{
                 flag: 1,
@@ -125,7 +109,7 @@ contract Sample with Common {
         });
     }
 
-    receive(msg: Excesses) {
+    override fun receiveExcesses(msg: Excesses) {
         send(SendParameters{
             to: self.owner,
             value: 0,
@@ -251,23 +235,6 @@ contract Sample with Common {
                 forwardAmount: ton("0"),
                 forwardPayload: emptyCell(),
                 customPayload: emptyCell(),
-            }.toCell(),
-        });
-    }
-
-    receive("deposit") {}
-
-    receive("withdraw") {
-        nativeThrowUnless(codeUnauthorized, sender() == self.owner);
-
-        nativeReserve(self.lockedValue + self.staticTaxFee, ReserveExact);
-        send(SendParameters{
-            to: self.owner,
-            value: 0,
-            mode: SendRemainingBalance,
-            bounce: false,
-            body: Excesses{
-                queryId: 0
             }.toCell(),
         });
     }

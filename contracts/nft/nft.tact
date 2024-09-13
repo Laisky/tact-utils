@@ -114,23 +114,6 @@ contract NftCollection with Common {
         });
     }
 
-    receive("deposit") {}
-
-    receive("withdraw") {
-        nativeThrowUnless(codeUnauthorized, sender() == self.owner);
-
-        nativeReserve(self.lockedValue + self.staticTaxFee, ReserveExact);
-        send(SendParameters{
-            to: self.owner,
-            value: 0,
-            mode: SendRemainingBalance,
-            bounce: false,
-            body: Excesses{
-                queryId: 0
-            }.toCell(),
-        });
-    }
-
     fun getNftItem(nextItemIndex: Int): StateInit {
         return initOf NftItem(myAddress(), nextItemIndex);
     }
@@ -249,23 +232,6 @@ contract NftItem with Common {
                 queryId: msg.queryId,
                 index: self.itemIndex,
                 collection: self.collection
-            }.toCell(),
-        });
-    }
-
-    receive("deposit") {}
-
-    receive("withdraw") {
-        nativeThrowUnless(codeUnauthorized, sender() == self.owner);
-
-        nativeReserve(self.lockedValue + self.staticTaxFee, ReserveExact);
-        send(SendParameters{
-            to: self.owner,
-            value: 0,
-            mode: SendRemainingBalance,
-            bounce: false,
-            body: Excesses{
-                queryId: 0
             }.toCell(),
         });
     }

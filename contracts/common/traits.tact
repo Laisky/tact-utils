@@ -1,5 +1,7 @@
 import "@stdlib/ownable";
+
 import "./errcodes.tact";
+import "./messages.tact";
 
 // SetStaticTaxFee is the message that used to set the static tax fee.
 message(0x1509a420) SetStaticTaxFee {
@@ -55,5 +57,33 @@ trait Common with Txable {
         let ctx = context();
         let val = max(myBalance() - ctx.value + self.staticTaxFee, self.lockedValue + self.staticTaxFee);
         nativeReserve(val + delta, ReserveExact);
+    }
+
+    virtual fun receiveExcesses(msg: Excesses) {
+        return;
+    }
+
+    // this is a non-standard method, it's used to deposit coins to the wallet.
+    receive(msg: Excesses) {
+        self.receiveExcesses(msg);
+    }
+
+    // this is a non-standard method,
+    // allows the owner to withdraw tokens from the wallet.
+    receive("withdraw"){
+        let ctx: Context = context();
+        nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
+        nativeThrowUnless(codeBalanceNotSufficient, myBalance() > self.lockedValue);
+
+        nativeReserve(self.lockedValue + self.staticTaxFee, ReserveExact);
+        send(SendParameters{
+            to: self.owner,
+            value: 0,
+            mode: SendRemainingBalance,
+            bounce: false,
+            body: Excesses{
+                queryId: 0,
+            }.toCell(),
+        });
     }
 }

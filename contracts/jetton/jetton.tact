@@ -8,52 +8,21 @@ import "./messages.tact";
 import "../common/traits.tact";
 import "../common/messages.tact";
 
-
-// =====================================
-// Main contract
-//
-// https://github.com/ton-blockchain/TEPs/blob/master/text/0062-nft-standard.md
-// =====================================
-
-
-// This is your custom jetton's master contract.
-contract JettonMaster with Common {
+trait JettonMaster with Common {
     owner: Address;
-    staticTaxFee: Int as coins = ton("0.01");
-    lockedValue: Int as coins = 0;
+    staticTaxFee: Int;
+    lockedValue: Int;
 
-    // Cell to store arbitrary data related to the jetton
-    //
-    // https://github.com/ton-blockchain/TEPs/blob/master/text/0064-token-data-standard.md#jetton-metadata-example-offchain
     content: Cell;
-    // Total number of tokens in existence.
-    totalSupply: Int as coins;
+    totalSupply: Int;
     mintable: Bool;
 
-    init(owner: Address, content: Tep64TokenData){
-        self.owner = owner;
-
-        self.content = content.toCell();
-        self.totalSupply = 0;
-        self.mintable = true;
-    }
-
-    fun getJettonContract(owner: Address): StateInit {
+    virtual fun getJettonContract(owner: Address): StateInit {
         return initOf JettonWallet(myAddress(), owner);
     }
 
-    // this is a non-standard method, it's used to mint new tokens to specified user.
-    receive(msg: MintJetton){
-        let ctx: Context = context();
-        // This is my personal preference: I think nativeThrowUnless more useful
-        // than require because it lets you customize the code.
-        nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
-
-        self.mint(msg);
-    }
-
     // this is a non-standard method, it's used to mint new tokens to multiple users.
-    fun mint(msg: MintJetton){
+    virtual fun mint(msg: MintJetton){
         let ctx = context();
         nativeThrowUnless(codeNotMintable, self.mintable);
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= msg.forwardTonAmount);
@@ -81,6 +50,17 @@ contract JettonMaster with Common {
             data: jettonWallet.data
         });
     }
+
+    // this is a non-standard method, it's used to mint new tokens to specified user.
+    receive(msg: MintJetton){
+        let ctx: Context = context();
+        // This is my personal preference: I think nativeThrowUnless more useful
+        // than require because it lets you customize the code.
+        nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
+
+        self.mint(msg);
+    }
+
 
     // this is a non-standard method, it's used to mint new tokens to multiple users.
     receive(msg: MultiMint){
@@ -130,26 +110,6 @@ contract JettonMaster with Common {
         });
     }
 
-    // this is a non-standard method, it's used to deposit coins to the wallet.
-    receive("deposit") {}
-
-    // this is a non-standard method,
-    // allows the owner to withdraw tokens from the wallet.
-    receive(msg: Withdraw){
-        let ctx: Context = context();
-        nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
-        nativeThrowUnless(codeBalanceNotSufficient, myBalance() > self.lockedValue);
-
-        nativeReserve(self.lockedValue + self.staticTaxFee, ReserveExact);
-        send(SendParameters{
-            to: self.owner,
-            value: 0,
-            mode: SendRemainingBalance,
-            bounce: false,
-            body: "withdraw".asComment(),
-        });
-    }
-
     // this is a TEP-074 standard getter method
     get fun get_jetton_data(): JettonMasterData {
         return JettonMasterData{
@@ -165,6 +125,37 @@ contract JettonMaster with Common {
     // generate the jetton wallet address for any user.
     get fun get_wallet_address(owner: Address): Address {
         return contractAddress(self.getJettonContract(owner));
+    }
+}
+
+
+// =====================================
+// Main contract
+//
+// https://github.com/ton-blockchain/TEPs/blob/master/text/0062-nft-standard.md
+// =====================================
+
+
+// This is your custom jetton's master contract.
+contract JettonMasterTemplate with JettonMaster {
+    owner: Address;
+    staticTaxFee: Int as coins = ton("0.01");
+    lockedValue: Int as coins = 0;
+
+    // Cell to store arbitrary data related to the jetton
+    //
+    // https://github.com/ton-blockchain/TEPs/blob/master/text/0064-token-data-standard.md#jetton-metadata-example-offchain
+    content: Cell;
+    // Total number of tokens in existence.
+    totalSupply: Int as coins;
+    mintable: Bool;
+
+    init(owner: Address, content: Tep64TokenData){
+        self.owner = owner;
+
+        self.content = content.toCell();
+        self.totalSupply = 0;
+        self.mintable = true;
     }
 }
 
@@ -302,25 +293,6 @@ contract JettonWallet with Common {
             body: Excesses{
                 queryId: msg.queryId
             }.toCell(),
-        });
-    }
-
-    receive("deposit") {}
-
-    // this is a non-standard method,
-    // allows the owner to withdraw tokens from the wallet.
-    receive(msg: Withdraw){
-        let ctx: Context = context();
-        nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
-        nativeThrowUnless(codeBalanceNotSufficient, myBalance() > self.lockedValue);
-
-        nativeReserve(self.lockedValue + self.staticTaxFee, ReserveExact);
-        send(SendParameters{
-            to: self.owner,
-            value: 0,
-            mode: SendRemainingBalance,
-            bounce: false,
-            body: "withdraw".asComment(),
         });
     }
 
