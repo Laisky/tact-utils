@@ -8,6 +8,64 @@ import "./messages.tact";
 import "../common/traits.tact";
 import "../common/messages.tact";
 
+// =====================================
+// Contracts
+//
+// https://github.com/ton-blockchain/TEPs/blob/master/text/0062-nft-standard.md
+// =====================================
+
+
+// This is your custom jetton's master contract.
+contract JettonMasterTemplate with JettonMaster {
+    owner: Address;
+    staticTaxFee: Int as coins = ton("0.01");
+    lockedValue: Int as coins = 0;
+
+    // Cell to store arbitrary data related to the jetton
+    //
+    // https://github.com/ton-blockchain/TEPs/blob/master/text/0064-token-data-standard.md#jetton-metadata-example-offchain
+    content: Cell;
+    // Total number of tokens in existence.
+    totalSupply: Int as coins;
+    mintable: Bool;
+
+    init(owner: Address, content: Tep64TokenData){
+        self.owner = owner;
+
+        self.content = content.toCell();
+        self.totalSupply = 0;
+        self.mintable = true;
+    }
+}
+
+contract JettonWalletTemplate with JettonWallet {
+    // owner is the address of the user who owns the wallet.
+    owner: Address;
+    // master is the address of the master contract that deployed this wallet.
+    master: Address;
+    // balance is the number of tokens that the wallet currently holds.
+    // unlike the centralized ledger of Ethereum Tokens,
+    // TON users keep track of the number of tokens they own in their own wallets.
+    balance: Int;
+    // staticTaxFee is the fee that will be charged for each transaction.
+    staticTaxFee: Int as coins = ton("0.01");
+    lockedValue: Int as coins = 0;
+
+    // The parameters of the init function should not be too complex,
+    // as it will be called frequently when generating the jetton wallet address.
+    init(master: Address, owner: Address){
+        self.balance = 0;
+        self.owner = owner;
+        self.master = master;
+    }
+}
+
+// =====================================
+// Traits
+//
+// https://github.com/ton-blockchain/TEPs/blob/master/text/0062-nft-standard.md
+// =====================================
+
 trait JettonMaster with Common {
     owner: Address;
     staticTaxFee: Int;
@@ -18,7 +76,7 @@ trait JettonMaster with Common {
     mintable: Bool;
 
     virtual fun getJettonContract(owner: Address): StateInit {
-        return initOf JettonWallet(myAddress(), owner);
+        return initOf JettonWalletTemplate(myAddress(), owner);
     }
 
     // this is a non-standard method, it's used to mint new tokens to multiple users.
@@ -64,6 +122,10 @@ trait JettonMaster with Common {
 
     // this is a non-standard method, it's used to mint new tokens to multiple users.
     receive(msg: MultiMint){
+        self.receiveMultiMint(msg);
+    }
+
+    virtual fun receiveMultiMint(msg: MultiMint){
         let ctx: Context = context();
         nativeThrowUnless(codeNotMintable, self.mintable);
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
@@ -129,38 +191,7 @@ trait JettonMaster with Common {
 }
 
 
-// =====================================
-// Main contract
-//
-// https://github.com/ton-blockchain/TEPs/blob/master/text/0062-nft-standard.md
-// =====================================
-
-
-// This is your custom jetton's master contract.
-contract JettonMasterTemplate with JettonMaster {
-    owner: Address;
-    staticTaxFee: Int as coins = ton("0.01");
-    lockedValue: Int as coins = 0;
-
-    // Cell to store arbitrary data related to the jetton
-    //
-    // https://github.com/ton-blockchain/TEPs/blob/master/text/0064-token-data-standard.md#jetton-metadata-example-offchain
-    content: Cell;
-    // Total number of tokens in existence.
-    totalSupply: Int as coins;
-    mintable: Bool;
-
-    init(owner: Address, content: Tep64TokenData){
-        self.owner = owner;
-
-        self.content = content.toCell();
-        self.totalSupply = 0;
-        self.mintable = true;
-    }
-}
-
-
-contract JettonWallet with Common {
+trait JettonWallet with Common {
     // owner is the address of the user who owns the wallet.
     owner: Address;
     // master is the address of the master contract that deployed this wallet.
@@ -170,19 +201,11 @@ contract JettonWallet with Common {
     // TON users keep track of the number of tokens they own in their own wallets.
     balance: Int;
     // staticTaxFee is the fee that will be charged for each transaction.
-    staticTaxFee: Int as coins = ton("0.01");
-    lockedValue: Int as coins = 0;
+    staticTaxFee: Int;
+    lockedValue: Int;
 
-    // The parameters of the init function should not be too complex,
-    // as it will be called frequently when generating the jetton wallet address.
-    init(master: Address, owner: Address){
-        self.balance = 0;
-        self.owner = owner;
-        self.master = master;
-    }
-
-    fun getJettonContract(owner: Address): StateInit {
-        return initOf JettonWallet(self.master, owner);
+    virtual fun getJettonContract(owner: Address): StateInit {
+        return initOf JettonWalletTemplate(self.master, owner);
     }
 
     bounced(src: bounced<TokenTransferInternal>){
@@ -193,6 +216,10 @@ contract JettonWallet with Common {
     // owner can transfer tokens to another jetton wallet
     // by sending TokenTransfer message to the contract.
     receive(msg: TokenTransfer){
+        self.receiveTokenTransfer(msg);
+    }
+
+    virtual fun receiveTokenTransfer(msg: TokenTransfer){
         let ctx: Context = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
         nativeThrowUnless(codeBalanceNotSufficient, self.balance >= msg.amount);
@@ -229,6 +256,10 @@ contract JettonWallet with Common {
     // this is unspecified by standard, but suggested format of internal message.
     // receive tokens from another jetton wallet
     receive(msg: TokenTransferInternal){
+        self.receiveTokenTransferInternal(msg);
+    }
+
+    virtual fun receiveTokenTransferInternal(msg: TokenTransferInternal){
         let ctx: Context = context();
 
         // only the owner or another jetton wallet can send TokenTransferInternal
@@ -276,6 +307,10 @@ contract JettonWallet with Common {
 
     // this is a TEP-074 standard receiver method
     receive(msg: Burn){
+        self.receiveBurn(msg);
+    }
+
+    virtual fun receiveBurn(msg: Burn){
         let ctx: Context = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
         nativeThrowUnless(codeInflowValueNotSufficient, msg.amount >= 0);

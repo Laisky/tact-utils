@@ -151,7 +151,7 @@ contract Sample with Common {
     // transfer jetton to the destination
     receive(msg: TransferNotification) {
         let jettonMasterContract = self.getJettonMaster();
-        let jettonWalletContract = initOf JettonWallet(
+        let jettonWalletContract = initOf JettonWalletTemplate(
             contractAddress(jettonMasterContract),
             myAddress(),
         );
