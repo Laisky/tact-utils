@@ -8,13 +8,27 @@
     <style>
         body {
             height: 100svh;
-            display: grid;
+            display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+            margin: 0;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            margin-top: 10px;
         }
 
         .op {
             margin-top: 10px;
+        }
+
+        #footer {
+            margin-top: auto;
         }
     </style>
 </head>
@@ -26,8 +40,9 @@
             <button id="getJetton" disabled>Get Jetton</button>
             <button id="getNft" disabled>Get NFT</button>
         </div>
-        <div id="footer">
-            <p>* <a href="https://github.com/Laisky/tact-utils" target="_blank">Source code</a></p>
+    </div>
+    <div id="footer">
+        <p>* <a href="https://github.com/Laisky/tact-utils" target="_blank">Source code</a></p>
     </div>
 
     <!-- <script type="module" src="./dist/bundle.js"></script> -->
