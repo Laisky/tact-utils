@@ -18,7 +18,7 @@ import "../common/messages.tact";
 // This is your custom jetton's master contract.
 contract JettonMasterTemplate with JettonMaster {
     owner: Address;
-    staticTaxFee: Int as coins = ton("0.01");
+    staticTaxFee: Int as coins = ton("0.001");
     lockedValue: Int as coins = 0;
 
     // Cell to store arbitrary data related to the jetton
@@ -48,7 +48,7 @@ contract JettonWalletTemplate with JettonWallet {
     // TON users keep track of the number of tokens they own in their own wallets.
     balance: Int;
     // staticTaxFee is the fee that will be charged for each transaction.
-    staticTaxFee: Int as coins = ton("0.01");
+    staticTaxFee: Int as coins = ton("0.001");
     lockedValue: Int as coins = 0;
 
     // The parameters of the init function should not be too complex,

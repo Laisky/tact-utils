@@ -14,7 +14,7 @@ import "./errcodes.tact";
 
 contract SampleMaster with Common {
     owner: Address;
-    staticTaxFee: Int as coins = ton("0.01");
+    staticTaxFee: Int as coins = ton("0.001");
     lockedValue: Int as coins = 0;
 
     init() {
@@ -69,7 +69,7 @@ contract SampleMaster with Common {
 contract Sample with Common {
     owner: Address;
     master: Address;
-    staticTaxFee: Int as coins = ton("0.01");
+    staticTaxFee: Int as coins = ton("0.001");
     lockedValue: Int as coins = 0;
 
     init(master: Address, owner: Address) {
@@ -246,7 +246,7 @@ contract Sample with Common {
 
 contract NftCollectionSample with NftCollection {
     owner: Address;
-    staticTaxFee: Int as coins = ton("0.01");
+    staticTaxFee: Int as coins = ton("0.001");
     lockedValue: Int as coins = ton("0");
 
     nextItemIndex: Int as uint256 = 0;

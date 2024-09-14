@@ -16,15 +16,13 @@ import "../common/traits.tact";
 
 contract NftCollectionTemplate with NftCollection {
     owner: Address;
-    staticTaxFee: Int as coins = ton("0.01");
+    staticTaxFee: Int as coins = ton("0.001");
     lockedValue: Int as coins = ton("0");
 
     nextItemIndex: Int as uint256 = 0;
-    // collectionContent should follow the format of the TEP-64
-    // https://github.com/ton-blockchain/TEPs/blob/master/text/0064-token-data-standard.md
     collectionContent: Cell;
     // itemContentUrlPrefix is the prefix of the individual NFT's content url.
-    // e.g. "https://s3.laisky.com/public/nft/ton-demo/"
+    // the full url should be: `${itemContentUrlPrefix}${individualContent}.json`
     itemContentUrlPrefix: String;
     royalty: RoyaltyParams;
 
@@ -54,7 +52,7 @@ contract NftCollectionTemplate with NftCollection {
 
 contract NftItemTemplate with NftItem {
     owner: Address;
-    staticTaxFee: Int as coins = ton("0.01");
+    staticTaxFee: Int as coins = ton("0.001");
     lockedValue: Int as coins = ton("0");
 
     initialized: Bool = false;
@@ -85,11 +83,9 @@ trait NftCollection with Common {
     lockedValue: Int;
 
     nextItemIndex: Int;
-    // collectionContent should follow the format of the TEP-64
-    // https://github.com/ton-blockchain/TEPs/blob/master/text/0064-token-data-standard.md
     collectionContent: Cell;
     // itemContentUrlPrefix is the prefix of the individual NFT's content url.
-    // e.g. "https://s3.laisky.com/public/nft/ton-demo/"
+    // the full url should be: `${itemContentUrlPrefix}${individualContent}.json`
     itemContentUrlPrefix: String;
     royalty: RoyaltyParams;
 
