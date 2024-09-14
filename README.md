@@ -28,11 +28,21 @@ npx blueprint build
 
 ## Usage
 
+### Hello World
+
+```sh
+npx blueprint build helloworld
+npx blueprint run --testnet --tonconnect helloworld
+```
+
+![](https://s3.laisky.com/uploads/2024/09/IMG_4203.jpeg)
+
 ### Jetton
 
 - [Sample Transaction](https://testnet.tonviewer.com/transaction/5fd248e34b3cb728aff786e990ac45324a2f070d89d9356fdac47fa61444813a)
 
 ```sh
+npx blueprint build sample
 npx blueprint run --testnet --tonconnect jetton
 ```
 
@@ -43,6 +53,7 @@ npx blueprint run --testnet --tonconnect jetton
 - [Sample Transaction](https://testnet.tonviewer.com/transaction/aef4b07e37d012e9b8051c1c4f2bcb263194b72d7f874218271595824b62a0bd)
 
 ```sh
+npx blueprint build sample
 npx blueprint run --testnet --tonconnect nft
 ```
 
