@@ -178,7 +178,10 @@ contract Sample with Common {
     fun getNftCollectionContract(): StateInit {
         return initOf NftCollectionSample(
             myAddress(),
-            "https://s3.laisky.com/uploads/2024/09/nft-sample-collection.json",
+            Tep64TokenData{
+                flag: 1,
+                content: "https://s3.laisky.com/uploads/2024/09/nft-sample-collection.json",
+            },
             "https://s3.laisky.com/uploads/2024/09/nft-sample-item-",
             null,
         );
@@ -256,14 +259,11 @@ contract NftCollectionSample with NftCollection {
     royalty: RoyaltyParams;
 
     init(owner: Address,
-        collectionContentUrl: String,
+        collectionContent: Tep64TokenData,
         itemContentUrlPrefix: String,
         royalty: RoyaltyParams?) {
         self.owner = owner;
-        self.collectionContent = Tep64TokenData{
-            flag: 1,
-            content: collectionContentUrl,
-        }.toCell();
+        self.collectionContent = collectionContent.toCell();
         self.itemContentUrlPrefix = itemContentUrlPrefix;
 
         if (royalty != null) {

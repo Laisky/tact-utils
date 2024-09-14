@@ -40,7 +40,7 @@ trait Nonce {
         self.nonce = receivedNonce;
     }
 
-    virtual fun getNonce(): Int {
+    virtual fun getNextNonce(): Int {
         self.nonce = self.nonce + 1;
         return self.nonce;
     }
@@ -61,13 +61,14 @@ trait Common with Txable {
     // this is a non-standard method,
     // allows the owner to withdraw tokens from the wallet.
     receive("withdraw"){
-        self.ReceiveWithdraw();
+        self.receiveWithdraw();
     }
 
-    virtual fun ReceiveWithdraw() {
+    virtual fun receiveWithdraw() {
                 let ctx: Context = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
-        nativeThrowUnless(codeBalanceNotSufficient, myBalance() > self.lockedValue);
+        nativeThrowUnless(codeBalanceNotSufficient,
+            myBalance() > self.lockedValue + self.staticTaxFee);
 
         nativeReserve(self.lockedValue + self.staticTaxFee, ReserveExact);
         send(SendParameters{

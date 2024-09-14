@@ -29,14 +29,11 @@ contract NftCollectionTemplate with NftCollection {
     royalty: RoyaltyParams;
 
     init(owner: Address,
-        collectionContentUrl: String,
+        collectionContent: Tep64TokenData,
         itemContentUrlPrefix: String,
         royalty: RoyaltyParams?) {
         self.owner = owner;
-        self.collectionContent = Tep64TokenData{
-            flag: 1,
-            content: collectionContentUrl,
-        }.toCell();
+        self.collectionContent = collectionContent.toCell();
         self.itemContentUrlPrefix = itemContentUrlPrefix;
 
         if (royalty != null) {
