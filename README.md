@@ -48,7 +48,22 @@ npx blueprint run --testnet --tonconnect jetton
 ? input the address of the jetton receiver(default to yourself):
 0QARnduCSjymI91urfHE_jXlnTHrmr0e4yaPubtPQkgy553b
 
-
+Sent transaction
+-------------------------------------
+jetton master address: EQD9PR60ImXHSE1KIemZGS30F0aHc0QUnfC6sMYyw9HtSGqA
+Contract deployed at address EQD9PR60ImXHSE1KIemZGS30F0aHc0QUnfC6sMYyw9HtSGqA
+You can view it at https://testnet.tonscan.org/address/EQD9PR60ImXHSE1KIemZGS30F0aHc0QUnfC6sMYyw9HtSGqA
+mintable: true
+owner: EQDRAI32YdVGZGDq18ygyPyflOpY5qIAA9ukd-OJ0CfYJ8SN
+jetton content: https://s3.laisky.com/uploads/2024/09/jetton-sample.json
+jetton total supply: 19000000000
+-------------------------------------
+jetton wallet address: EQDJiYKObYkxFFTR5v53TihdY723W8YCh34jvdu7qcwhBhVx
+Contract deployed at address EQDJiYKObYkxFFTR5v53TihdY723W8YCh34jvdu7qcwhBhVx
+You can view it at https://testnet.tonscan.org/address/EQDJiYKObYkxFFTR5v53TihdY723W8YCh34jvdu7qcwhBhVx
+jetton wallet owner: EQARnduCSjymI91urfHE_jXlnTHrmr0e4yaPubtPQkgy53uU
+jetton wallet master: EQD9PR60ImXHSE1KIemZGS30F0aHc0QUnfC6sMYyw9HtSGqA
+jetton wallet balance: 19000000000
 ```
 
 ![Jettom Sample](https://s3.laisky.com/uploads/2024/09/jetton-sample-shot.png)
