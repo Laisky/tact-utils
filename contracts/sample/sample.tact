@@ -142,7 +142,7 @@ contract Sample with Common {
                 receiver: myAddress(),
                 responseDestination: myAddress(),
                 forwardTonAmount: ton("0.1"),
-                forwardPayload: emptyCell(),
+                forwardPayload: msg.toCell(),
             }.toCell(),
             code: jettonMasterContract.code,
             data: jettonMasterContract.data,
@@ -158,6 +158,9 @@ contract Sample with Common {
         );
 
         nativeThrowUnless(codeUnauthorized, sender() == contractAddress(jettonWalletContract));
+        nativeThrowUnless(codeForwardPayloadInvalid, msg.forwardPayload != null);
+
+        let mingMsg = MintJettonSample.fromCell(msg.forwardPayload!!);
 
         self.reserveValue(0);
         send(SendParameters{
@@ -168,8 +171,8 @@ contract Sample with Common {
             body: TokenTransfer{
                 queryId: msg.queryId,
                 amount: msg.amount,
-                destination: self.owner,
-                responseDestination: self.owner,
+                destination: mingMsg.receiver,
+                responseDestination: mingMsg.receiver,
                 forwardTonAmount: ton("0"),
             }.toCell(),
         });

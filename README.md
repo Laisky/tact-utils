@@ -26,7 +26,7 @@ npm i
 npx blueprint build
 ```
 
-## Usage
+## Examples
 
 ### Hello World
 
