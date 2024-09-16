@@ -44,6 +44,11 @@ npx blueprint run --testnet --tonconnect helloworld
 ```sh
 npx blueprint build sample
 npx blueprint run --testnet --tonconnect jetton
+
+? input the address of the jetton receiver(default to yourself):
+0QARnduCSjymI91urfHE_jXlnTHrmr0e4yaPubtPQkgy553b
+
+
 ```
 
 ![Jettom Sample](https://s3.laisky.com/uploads/2024/09/jetton-sample-shot.png)
