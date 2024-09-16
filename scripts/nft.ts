@@ -1,6 +1,6 @@
 import { toNano } from '@ton/core';
 import { NetworkProvider } from '@ton/blueprint';
-import { getMasterContract } from './deploy';
+import { getMasterContract } from './utils';
 
 export async function run(provider: NetworkProvider): Promise<void> {
     const contract = await getMasterContract(provider);
