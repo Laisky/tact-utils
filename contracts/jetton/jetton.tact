@@ -182,7 +182,9 @@ trait JettonMaster with Common {
             value: 0,
             bounce: false,
             mode: SendRemainingBalance,
-            body: Excesses{queryId: 0}.toCell(),
+            body: Excesses{
+                queryId: msg.queryId,
+            }.toCell(),
         });
     }
 
