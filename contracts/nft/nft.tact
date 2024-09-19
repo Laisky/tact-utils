@@ -124,6 +124,14 @@ trait NftCollection with Common {
 
     // update collection's content and itemContentUrlPrefix
     receive(msg: UpdateCollection) {
+        self.receiveUpdateCollection(msg);
+    }
+
+    bounced(msg: bounced<NFTTransfer>) {
+        self.receiveBouncedNFTTransfer();
+    }
+
+    virtual fun receiveUpdateCollection(msg: UpdateCollection) {
         nativeThrowUnless(codeUnauthorized, sender() == self.owner);
 
         if (msg.collectionContent != null) {
@@ -149,10 +157,6 @@ trait NftCollection with Common {
                 queryId: msg.queryId
             }.toCell(),
         });
-    }
-
-    bounced(msg: bounced<NFTTransfer>) {
-        self.receiveBouncedNFTTransfer();
     }
 
     virtual fun receiveBouncedNFTTransfer() {
