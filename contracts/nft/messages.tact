@@ -17,9 +17,10 @@ message(0xe535b616) MintNFT {
 
 message(0x48a60907) UpdateCollection {
     queryId: Int as uint64;
+    responseDestination: Address;
     collectionContent: Tep64TokenData?;
     itemContentUrlPrefix: String?;
-    responseDestination: Address;
+    royalty: RoyaltyParams?;
 }
 
 

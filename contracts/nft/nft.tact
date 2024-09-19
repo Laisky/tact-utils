@@ -124,12 +124,18 @@ trait NftCollection with Common {
 
     // update collection's content and itemContentUrlPrefix
     receive(msg: UpdateCollection) {
+        nativeThrowUnless(codeUnauthorized, sender() == self.owner);
+
         if (msg.collectionContent != null) {
             self.collectionContent = msg.collectionContent!!.toCell();
         }
 
         if (msg.itemContentUrlPrefix != null) {
             self.itemContentUrlPrefix = msg.itemContentUrlPrefix!!;
+        }
+
+        if (msg.royalty != null) {
+            self.royalty = msg.royalty!!;
         }
 
         // refund
