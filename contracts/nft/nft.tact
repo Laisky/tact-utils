@@ -89,6 +89,10 @@ trait NftCollection with Common {
     itemContentUrlPrefix: String;
     royalty: RoyaltyParams;
 
+    // -------------------------------------
+    // TEP-062 standard interfaces
+    // -------------------------------------
+
     // collection's owner can mint NFTs
     receive(msg: MintNFT) {
         self.receiveMintNFT(msg);
@@ -112,6 +116,33 @@ trait NftCollection with Common {
 
     get fun royalty_params(): RoyaltyParams {
         return self.royaltyParams();
+    }
+
+    // -------------------------------------
+    // Non standard methods
+    // -------------------------------------
+
+    // update collection's content and itemContentUrlPrefix
+    receive(msg: UpdateCollection) {
+        if (msg.collectionContent != null) {
+            self.collectionContent = msg.collectionContent!!.toCell();
+        }
+
+        if (msg.itemContentUrlPrefix != null) {
+            self.itemContentUrlPrefix = msg.itemContentUrlPrefix!!;
+        }
+
+        // refund
+        self.reserveValue(0);
+        send(SendParameters{
+            to: msg.responseDestination,
+            value: 0,
+            mode: SendRemainingBalance,
+            bounce: false,
+            body: Excesses{
+                queryId: msg.queryId
+            }.toCell(),
+        });
     }
 
     bounced(msg: bounced<NFTTransfer>) {

@@ -91,4 +91,20 @@ trait Common with Txable {
     virtual fun receiveExcesses(msg: Excesses) {
         return;
     }
+
+    fun verifyMerkleProof(root: Cell, proof: Slice, value: Slice): Bool {
+        let hash = value.hash();
+        let proofSlice = proof;
+
+        while (proofSlice.bits() > 0) {
+            let siblingHash = proofSlice.loadInt(256);
+            if (hash < siblingHash) {
+                hash = beginCell().storeInt(hash, 256).storeInt(siblingHash, 256).endCell().hash();
+            } else {
+                hash = beginCell().storeInt(siblingHash, 256).storeInt(hash, 256).endCell().hash();
+            }
+        }
+
+        return hash == root.hash();
+    }
 }

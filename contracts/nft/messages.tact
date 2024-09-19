@@ -15,6 +15,14 @@ message(0xe535b616) MintNFT {
     forwardPayload: Cell?;
 }
 
+message(0x48a60907) UpdateCollection {
+    queryId: Int as uint64;
+    collectionContent: Tep64TokenData?;
+    itemContentUrlPrefix: String?;
+    responseDestination: Address;
+}
+
+
 // =====================================
 // Responsed structures
 // =====================================
