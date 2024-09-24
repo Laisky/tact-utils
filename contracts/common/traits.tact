@@ -18,8 +18,12 @@ trait Txable with OwnableTransferable {
 
     virtual fun receiveSetStaticTaxFee(msg: SetStaticTaxFee) {
         nativeThrowUnless(codeUnauthorized, sender() == self.owner);
+
         self.staticTaxFee = msg.staticTaxFee;
-        let answer = beginString().concat("set static tax fee to ").concat(msg.staticTaxFee.toString()).toString();
+        let answer = beginString()
+            .concat("set static tax fee to ")
+            .concat(msg.staticTaxFee.toString())
+            .toString();
         self.reply(answer.asComment());
     }
 }
