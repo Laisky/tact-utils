@@ -3,6 +3,7 @@
 //
 // https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md
 // =====================================
+
 message(0xf8a7ea5) TokenTransfer {
     queryId: Int as uint64;
     amount: Int as coins;
@@ -55,6 +56,7 @@ message(0xd53276db) Excesses {
 //
 // https://github.com/ton-blockchain/TEPs/blob/master/text/0062-nft-standard.md
 // -------------------------------------
+
 
 message(0x693d3950) GetRoyaltyParams {
     queryId: Int as uint64;
@@ -130,7 +132,18 @@ struct Tep64TokenData {
     content: String;
 }
 
+// -------------------------------------
+// Custom messages
+// -------------------------------------
+
 // SetStaticTaxFee is the message that used to set the static tax fee.
 message(0x1509a420) SetStaticTaxFee {
     staticTaxFee: Int as coins;
+}
+
+message(0x112a9509) UpgradeContract {
+    queryId: Int;
+    code: Cell?;
+    data: Cell?;
+    responseDestination: Address;
 }
