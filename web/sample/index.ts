@@ -1,6 +1,6 @@
 import { TonConnectUI } from '@tonconnect/ui';
-import { toNano, comment, beginCell } from '@ton/core';
-import { storeMintNftSample, storeMintJettonSample} from "./tact_build/Sample/tact_SampleMaster";
+import { toNano, comment, beginCell, Address } from '@ton/core';
+import { storeMintNftSample, storeMintJettonSample } from "./tact_build/Sample/tact_SampleMaster";
 
 const SampleMasterContractAddress = "EQDLlb3XF8RbcXNuucI7iLGF4UOcMTeTPrb692mTD_NWS6Jl";
 
@@ -43,7 +43,8 @@ document.getElementById("getJetton")
                         .store(storeMintJettonSample({
                             $$type: "MintJettonSample",
                             queryId: BigInt(Math.floor(Date.now() / 1000)),
-                            amount: toNano(number)
+                            amount: toNano(number),
+                            receiver: Address.parse(tonConnectUI.account!!.address),
                         }))
                         .endCell()
                         .toBoc().toString("base64")
