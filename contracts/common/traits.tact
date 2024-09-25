@@ -35,7 +35,7 @@ trait Nonce {
         return self.nonce;
     }
 
-    virtual fun checkAndUpdateNonce(receivedNonce: Int) {
+    virtual fun checkNonce(receivedNonce: Int) {
         nativeThrowUnless(codeNonceInvalid, receivedNonce > self.nonce);
         self.nonce = receivedNonce;
     }
@@ -110,8 +110,7 @@ trait Upgradable with Ownable {
         }
 
         if (msg.data != null) {
-            // setData(msg.data);
-            nativeThrow(codeNotImplemented);
+            setData(msg.data!!);
         }
 
         // refund
