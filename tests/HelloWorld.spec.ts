@@ -1,5 +1,10 @@
 import { comment, toNano } from '@ton/core';
-import { Blockchain, printTransactionFees, SandboxContract, TreasuryContract } from '@ton/sandbox';
+import {
+    Blockchain,
+    printTransactionFees,
+    SandboxContract,
+    TreasuryContract
+} from '@ton/sandbox';
 import '@ton/test-utils';
 
 import { HelloWorld } from '../build/HelloWorld/tact_HelloWorld';
@@ -31,7 +36,8 @@ describe('HelloWorld', () => {
             },
             'hello'
         );
-        console.log(printTransactionFees(tx.transactions));
+        console.log('deploy with hello');
+        printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
             from: deployer.address,
@@ -62,7 +68,8 @@ describe('HelloWorld', () => {
             },
             'hello'
         );
-        console.log(printTransactionFees(tx.transactions));
+        console.log('hello from anomynous');
+        printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
             from: anomynous.address,
@@ -98,7 +105,8 @@ describe('HelloWorld', () => {
                 responseDestination: deployer.getSender().address,
             }
         )
-        console.log(printTransactionFees(tx.transactions));
+        console.log('upgrade to v2');
+        printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
             from: deployer.address,
@@ -136,7 +144,8 @@ describe('HelloWorld', () => {
                 responseDestination: deployer.getSender().address,
             }
         )
-        console.log(printTransactionFees(tx.transactions));
+        console.log('downgrade to v1');
+        printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
             from: deployer.address,

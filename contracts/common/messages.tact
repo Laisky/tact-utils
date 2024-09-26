@@ -9,7 +9,7 @@ message(0xf8a7ea5) TokenTransfer {
     amount: Int as coins;
     destination: Address;
     responseDestination: Address;
-    custom_payload: Cell?;
+    customPayload: Cell?;
     forwardTonAmount: Int as coins;
     forwardPayload: Cell?;
 }
@@ -35,7 +35,7 @@ message(0x59f07bc) Burn {
     queryId: Int as uint64;
     amount: Int as coins;
     responseDestination: Address;
-    forwardPayload: Cell?;
+    customPayload: Cell?;
 }
 
 message(0x7bdd97de) TokenBurnNotification {
