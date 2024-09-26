@@ -79,6 +79,23 @@ jetton wallet balance: 19000000000
 ```sh
 npx blueprint build sample
 npx blueprint run --testnet --tonconnect nft
+
+Sent transaction
+-------------------------------------
+nft collection address: EQBHuZqwFHShebGvdOwRCeC1XbWPvYpOZsF7k7gkirDofyXG
+Contract deployed at address EQBHuZqwFHShebGvdOwRCeC1XbWPvYpOZsF7k7gkirDofyXG
+You can view it at https://testnet.tonscan.org/address/EQBHuZqwFHShebGvdOwRCeC1XbWPvYpOZsF7k7gkirDofyXG
+nft collection owner: EQCVjlulLBzq9FSR2wQqZJU3uzE-TDXlvWKJAtHqu5SyHqoh
+nft collection next index: 1
+nft collection content: https://s3.laisky.com/uploads/2024/09/nft-sample-collection.json
+-------------------------------------
+nft item address: EQCub9bLM0sjI2qJGafmMFiPsDFJhq5RkDVQRlnNV9Rr_W77
+Contract deployed at address EQCub9bLM0sjI2qJGafmMFiPsDFJhq5RkDVQRlnNV9Rr_W77
+You can view it at https://testnet.tonscan.org/address/EQCub9bLM0sjI2qJGafmMFiPsDFJhq5RkDVQRlnNV9Rr_W77
+nft item owner: EQCVjlulLBzq9FSR2wQqZJU3uzE-TDXlvWKJAtHqu5SyHqoh
+nft item collection: EQBHuZqwFHShebGvdOwRCeC1XbWPvYpOZsF7k7gkirDofyXG
+nft item index: 0
+nft item content: https://s3.laisky.com/uploads/2024/09/nft-sample-item-0.json
 ```
 
 ![NFT Sample](https://s3.laisky.com/uploads/2024/09/nft-sample-shot.png)
