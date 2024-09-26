@@ -11,7 +11,7 @@ contract HelloWorld with Upgradable {
     receive("hello") {
         let resp: String = "";
         if (self.owner != sender()) {
-            resp = "hello world"
+            resp = "hello, world"
         }else {
             resp = "hello, owner"
         }

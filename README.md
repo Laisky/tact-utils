@@ -29,7 +29,6 @@ Provides ready-to-use templates for Jetton, NFT, Traits, as well as some commonl
   - [Helpful Tools](#helpful-tools)
   - [Helpful Communites](#helpful-communites)
 
-
 ## Demo
 
 <https://s3.laisky.com/public/nft/connect/demo/index.html>
@@ -61,7 +60,7 @@ npx blueprint run --testnet --tonconnect helloworld
 
 ### Jetton
 
-- [Sample Transaction](https://testnet.tonviewer.com/transaction/5fd248e34b3cb728aff786e990ac45324a2f070d89d9356fdac47fa61444813a)
+-   [Sample Transaction](https://testnet.tonviewer.com/transaction/5fd248e34b3cb728aff786e990ac45324a2f070d89d9356fdac47fa61444813a)
 
 ```sh
 npx blueprint build sample
@@ -92,7 +91,7 @@ jetton wallet balance: 19000000000
 
 ### NFT
 
-- [Sample Transaction](https://testnet.tonviewer.com/transaction/aef4b07e37d012e9b8051c1c4f2bcb263194b72d7f874218271595824b62a0bd)
+-   [Sample Transaction](https://testnet.tonviewer.com/transaction/aef4b07e37d012e9b8051c1c4f2bcb263194b72d7f874218271595824b62a0bd)
 
 ```sh
 npx blueprint build sample
@@ -203,12 +202,13 @@ contract YOUR_CONTRACT with JettonMaster {
     }
 }
 ```
+
 ## Helpful Tools
 
-- [TON Converter](https://ario.laisky.com/alias/ton-converter)
-- [Free permanent file storage.](https://ario.laisky.com/alias/doc)
+-   [TON Converter](https://ario.laisky.com/alias/ton-converter)
+-   [Free permanent file storage.](https://ario.laisky.com/alias/doc)
 
 ## Helpful Communites
 
-- [TON Tact Language Chat](https://t.me/tactlang)
-- [TON Dev Chat (EN)](https://t.me/tondev_eng)
+-   [TON Tact Language Chat](https://t.me/tactlang)
+-   [TON Dev Chat (EN)](https://t.me/tondev_eng)
