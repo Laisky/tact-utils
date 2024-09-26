@@ -6,4 +6,5 @@ message(0xfed5e4e8) MintJettonSample {
 
 message(0xe2b82ed5) MintNftSample {
     queryId: Int as uint64;
+    receiver: Address;
 }

@@ -160,7 +160,7 @@ contract Sample with Common {
         nativeThrowUnless(codeUnauthorized, sender() == contractAddress(jettonWalletContract));
         nativeThrowUnless(codeForwardPayloadInvalid, msg.forwardPayload != null);
 
-        let mingMsg = MintJettonSample.fromCell(msg.forwardPayload!!);
+        let mintMsg = MintJettonSample.fromCell(msg.forwardPayload!!);
 
         self.reserveValue(0);
         send(SendParameters{
@@ -171,8 +171,8 @@ contract Sample with Common {
             body: TokenTransfer{
                 queryId: msg.queryId,
                 amount: msg.amount,
-                destination: mingMsg.receiver,
-                responseDestination: mingMsg.receiver,
+                destination: mintMsg.receiver,
+                responseDestination: self.owner,
                 forwardTonAmount: ton("0"),
             }.toCell(),
         });
@@ -208,7 +208,7 @@ contract Sample with Common {
                 queryId: msg.queryId,
                 newOwner: myAddress(),
                 forwardAmount: ton("0.1"),
-                forwardPayload: emptyCell(),
+                forwardPayload: msg.toCell(),
             }.toCell(),
             code: nftMasterContract.code,
             data: nftMasterContract.data,
@@ -228,6 +228,8 @@ contract Sample with Common {
 
         nativeThrowUnless(codeUnauthorized, sender() == contractAddress(nftItemContract));
 
+        let mintMsg = MintNftSample.fromCell(msg.forwardPayload!!);
+
         self.reserveValue(0);
         send(SendParameters{
             to: contractAddress(nftItemContract),
@@ -236,7 +238,7 @@ contract Sample with Common {
             bounce: false,
             body: NFTTransfer{
                 queryId: msg.queryId,
-                newOwner: self.owner,
+                newOwner: mintMsg.receiver,
                 responseDestination: self.owner,
                 forwardAmount: ton("0"),
                 forwardPayload: emptyCell(),

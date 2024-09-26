@@ -2,7 +2,7 @@ import { TonConnectUI } from '@tonconnect/ui';
 import { toNano, comment, beginCell, Address } from '@ton/core';
 import { storeMintNftSample, storeMintJettonSample } from "./tact_build/Sample/tact_SampleMaster";
 
-const SampleMasterContractAddress = "EQDLlb3XF8RbcXNuucI7iLGF4UOcMTeTPrb692mTD_NWS6Jl";
+const SampleMasterContractAddress = "kQBKfUb1Be_J5y09iXlEzGy2xH19RnHiW9ldwDOyAcgudJNR";
 
 const tonConnectUI = new TonConnectUI({
     manifestUrl: 'https://s3.laisky.com/uploads/2024/09/connect-manifest-v2.json',
@@ -70,6 +70,7 @@ document.getElementById("getNft")
                         .store(storeMintNftSample({
                             $$type: "MintNftSample",
                             queryId: BigInt(Math.floor(Date.now() / 1000)),
+                            receiver: Address.parse(tonConnectUI.account!!.address),
                         }))
                         .endCell()
                         .toBoc().toString("base64")
