@@ -12,6 +12,24 @@ Provides ready-to-use templates for Jetton, NFT, Traits, as well as some commonl
 
 **Still undergoing frequent updates!**
 
+- [tact-utils](#tact-utils)
+  - [Demo](#demo)
+  - [Install](#install)
+    - [Build](#build)
+  - [Examples](#examples)
+    - [Hello World](#hello-world)
+    - [Jetton](#jetton)
+    - [NFT](#nft)
+  - [Helpful Traits](#helpful-traits)
+    - [Txable](#txable)
+    - [Upgradale](#upgradale)
+    - [Jetton](#jetton-1)
+      - [Jetton Template](#jetton-template)
+      - [Jetton Trait](#jetton-trait)
+  - [Helpful Tools](#helpful-tools)
+  - [Helpful Communites](#helpful-communites)
+
+
 ## Demo
 
 <https://s3.laisky.com/public/nft/connect/demo/index.html>
@@ -136,6 +154,55 @@ contract YOUR_CONTRACT with Upgradable {
 }
 ```
 
+### Jetton
+
+#### Jetton Template
+
+Easily implement your own Jetton contract using Jetton Template.
+
+```js
+import './tact-utils/contracts/jetton/jetton.tact';
+import './tact-utils/contracts/common/messages.tact';
+
+contract YOUR_CONTRACT {
+    owner: Address;
+
+    receive("SOME_MSG") {
+        let jettonMaster = initOf JettonMasterTemplate(
+            self.owner,
+            Tep64TokenData{
+                flag: 1,
+                content: "https://s3.laisky.com/uploads/2024/09/jetton-sample.json",
+            },
+        )
+    }
+}
+```
+
+#### Jetton Trait
+
+You can also deeply customize Jetton contracts using Jetton Trait.
+
+```js
+import './tact-utils/contracts/jetton/jetton.tact';
+
+contract YOUR_CONTRACT with JettonMaster {
+    owner: Address;
+    staticTaxFee: Int as coins = ton("0.001");
+    lockedValue: Int as coins = 0;
+    content: Cell;
+    totalSupply: Int as coins;
+    mintable: Bool;
+
+    init(owner: Address, content: Tep64TokenData) {
+        self.owner = owner;
+
+        self.content = content.toCell();
+        self.totalSupply = 0;
+        self.mintable = true;
+    }
+}
+```
 ## Helpful Tools
 
 - [TON Converter](https://ario.laisky.com/alias/ton-converter)
