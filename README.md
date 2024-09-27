@@ -1,6 +1,8 @@
 # tact-utils
 
 [![Awesome TACT](https://awesome.re/badge.svg)](https://github.com/tact-lang/awesome-tact)
+[![Twitter](https://img.shields.io/twitter/follow/LaiskyCai?style=social)](https://twitter.com/LaiskyCai)
+[![Telegram](https://img.shields.io/badge/telegram-laiskycai-blue?logo=telegram)](https://t.me/laiskycai)
 
 A collection of TON Tact templates and tools.
 
