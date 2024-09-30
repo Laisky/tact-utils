@@ -174,7 +174,7 @@ trait NftCollection with Common {
     virtual fun mint(msg: MintNFT) {
         let ctx: Context = context();
 
-        let nftItemContract = self.getNftItem(self.nextItemIndex);
+        let nftItemContract = self.getNftItemContract(self.nextItemIndex);
         let transferMsg = NFTTransfer {
             queryId: msg.queryId,
             newOwner: msg.newOwner,
@@ -218,7 +218,7 @@ trait NftCollection with Common {
         });
     }
 
-    virtual fun getNftItem(nextItemIndex: Int): StateInit {
+    virtual fun getNftItemContract(nextItemIndex: Int): StateInit {
         return initOf NftItemTemplate(myAddress(), nextItemIndex);
     }
 
@@ -232,7 +232,7 @@ trait NftCollection with Common {
 
     virtual fun getNftAddressByIndex(index: Int): Address {
         nativeThrowUnless(codeNftIndexNotExists, index < self.nextItemIndex);
-        return contractAddress(self.getNftItem(index));
+        return contractAddress(self.getNftItemContract(index));
     }
 
     virtual fun getNftContent(index: Int, individualContent: Cell): Cell {

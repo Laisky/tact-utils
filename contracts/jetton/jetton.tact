@@ -3,10 +3,13 @@
 // =====================================
 
 import "@stdlib/ownable";
-import "./errcodes.tact";
-import "./messages.tact";
+
 import "../common/traits.tact";
 import "../common/messages.tact";
+
+import "./errcodes.tact";
+import "./messages.tact";
+
 
 // =====================================
 // Contracts
@@ -96,7 +99,7 @@ trait JettonMaster with Common {
         return self.getWalletAddress(owner);
     }
 
-    virtual fun getJettonContract(owner: Address): StateInit {
+    virtual fun getJettonWalletContract(owner: Address): StateInit {
         return initOf JettonWalletTemplate(myAddress(), owner);
     }
 
@@ -107,7 +110,7 @@ trait JettonMaster with Common {
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= msg.forwardTonAmount);
 
         self.totalSupply = self.totalSupply + msg.amount;
-        let jettonWallet = self.getJettonContract(msg.receiver);
+        let jettonWallet = self.getJettonWalletContract(msg.receiver);
 
         // deploy the wallet if it's not deployed yet,
         // then send the minted tokens to the wallet.
@@ -153,7 +156,7 @@ trait JettonMaster with Common {
             self.totalSupply = self.totalSupply + receiver!!.amount;
             totalTonAmount = totalTonAmount + receiver!!.tonAmount;
 
-            let jettonWallet = self.getJettonContract(receiver!!.address);
+            let jettonWallet = self.getJettonWalletContract(receiver!!.address);
             send(SendParameters{
                 to: contractAddress(jettonWallet),
                 value: receiver!!.tonAmount,
@@ -194,12 +197,12 @@ trait JettonMaster with Common {
             mintable: self.mintable,
             owner: self.owner,
             content: self.content,
-            walletCode: self.getJettonContract(myAddress()).code
+            walletCode: self.getJettonWalletContract(myAddress()).code
         };
     }
 
     virtual fun getWalletAddress(owner: Address): Address {
-        return contractAddress(self.getJettonContract(owner));
+        return contractAddress(self.getJettonWalletContract(owner));
     }
 }
 
@@ -244,7 +247,7 @@ trait JettonWallet with Common {
         self.balance = self.balance + src.amount;
     }
 
-    virtual fun getJettonContract(owner: Address): StateInit {
+    virtual fun getJettonWalletContract(owner: Address): StateInit {
         return initOf JettonWalletTemplate(self.master, owner);
     }
 
@@ -259,7 +262,7 @@ trait JettonWallet with Common {
         // deploy the wallet if it's not deployed yet,
         // then transfer the tokens to the wallet.
         self.reserveValue(0);
-        let jettonContract = self.getJettonContract(msg.destination);
+        let jettonContract = self.getJettonWalletContract(msg.destination);
         send(SendParameters{
             to: contractAddress(jettonContract),
             value: 0,
@@ -287,7 +290,7 @@ trait JettonWallet with Common {
 
         // only the owner or another jetton wallet can send TokenTransferInternal
         if (ctx.sender != self.master) {
-            let peerJettonContractAddr = contractAddress(self.getJettonContract(msg.from));
+            let peerJettonContractAddr = contractAddress(self.getJettonWalletContract(msg.from));
             nativeThrowUnless(codeUnauthorized, ctx.sender == peerJettonContractAddr);
         }
 
@@ -354,7 +357,7 @@ trait JettonWallet with Common {
             balance: self.balance,
             owner: self.owner,
             master: self.master,
-            walletCode: self.getJettonContract(self.owner).code,
+            walletCode: self.getJettonWalletContract(self.owner).code,
         };
     }
 }
