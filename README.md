@@ -51,6 +51,10 @@ npx blueprint build
 
 ## Examples
 
+`helloworld` is a simple example of a contract, while `sample` is an example that includes complex contract calls.
+Please do not use `helloworld` and `sample` directly in your development.
+Instead, use the code in `common`, `jetton`, and `nft` according to your needs.
+
 ### Hello World
 
 ```sh
@@ -61,6 +65,10 @@ npx blueprint run --testnet --tonconnect helloworld
 ![](https://s3.laisky.com/uploads/2024/09/IMG_4203.jpeg)
 
 ### Jetton
+
+> To provide a more comprehensive code template, the sample deliberately includes a more complex Jetton implementation.
+> You don't need to use the Sample directly in your project;
+> rather, you should utilize the contracts and code in `jetton` and `common` as per your requirements.
 
 -   [Sample Transaction](https://testnet.tonviewer.com/transaction/5fd248e34b3cb728aff786e990ac45324a2f070d89d9356fdac47fa61444813a)
 
@@ -92,6 +100,10 @@ jetton wallet balance: 19000000000
 ![Jettom Sample](https://s3.laisky.com/uploads/2024/09/jetton-sample-shot.png)
 
 ### NFT
+
+> To provide a more comprehensive code template, the sample deliberately includes a more complex NFT implementation.
+> You don't need to use the Sample directly in your project;
+> rather, you should utilize the contracts and code in `nft` and `common` as per your requirements.
 
 -   [Sample Transaction](https://testnet.tonviewer.com/transaction/aef4b07e37d012e9b8051c1c4f2bcb263194b72d7f874218271595824b62a0bd)
 
