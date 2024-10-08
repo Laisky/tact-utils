@@ -69,6 +69,7 @@ contract JettonWalletTemplate with JettonWallet {
 // https://github.com/ton-blockchain/TEPs/blob/master/text/0062-nft-standard.md
 // =====================================
 
+@interface("org.ton.jetton.master")
 trait JettonMaster with Common {
     owner: Address;
     staticTaxFee: Int;
@@ -206,7 +207,7 @@ trait JettonMaster with Common {
     }
 }
 
-
+@interface("org.ton.jetton.wallet")
 trait JettonWallet with Common {
     // owner is the address of the user who owns the wallet.
     owner: Address;

@@ -6,11 +6,18 @@
 
 message(0xf8a7ea5) TokenTransfer {
     queryId: Int as uint64;
+    // the amount of jettons to transfer
     amount: Int as coins;
+    // the address of the jetton receiver
     destination: Address;
+    // the address to send the excesses to
     responseDestination: Address;
+    // the custom payload to be sent with the excesses
     customPayload: Cell?;
+    // the amount of TON coins to forward,
+    // if not zero, will send additional msg with the specified amount
     forwardTonAmount: Int as coins;
+    // the payload to forward
     forwardPayload: Cell?;
 }
 
@@ -26,7 +33,9 @@ message(0x178d4519) TokenTransferInternal {
 
 message(0x7362d09c) TransferNotification {
     queryId: Int as uint64;
+    // the amount of jettons transferred
     amount: Int as coins;
+    // the address of the jettom sender
     sender: Address;
     forwardPayload: Cell?;
 }
