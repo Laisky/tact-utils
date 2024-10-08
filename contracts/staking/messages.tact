@@ -27,6 +27,26 @@ struct StakeJetton {
 
 message Release {
     queryId: Int as uint64;
+    owner: Address;
+    // the amount of TON coins to release
+    amount: Int as coins;
+    // the amount of jettons to release
+    jettons: map<Int as uint64, ReleaseJettonInfo>;
+    jettonsIdx: Int as uint64;
+    // the address of the jetton receiver
+    destination: Address;
+    // the address to send the excesses to
+    responseDestination: Address;
+    // the custom payload to be sent with the released ton coins
+    customPayload: Cell?;
+    // amount of TON to forward
+    forwardTonAmount: Int as coins;
+    // payload to forward
+    forwardPayload: Cell?;
+}
+
+message ReleaseInternal {
+    queryId: Int as uint64;
     // the amount of TON coins to release
     amount: Int as coins;
     // the amount of jettons to release

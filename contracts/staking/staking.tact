@@ -3,6 +3,7 @@
 // =====================================
 
 import "@stdlib/ownable";
+import "@stdlib/deploy";
 
 import "../common/traits.tact";
 import "../common/messages.tact";
@@ -26,10 +27,9 @@ contract StakingMasterTemplate with StakingMaster {
 
 contract StakingWalletTemplate with StakingWallet {
     owner: Address;
+    master: Address;
     staticTaxFee: Int as coins = ton("0.001");
     lockedValue: Int as coins = 0;
-
-    master: Address;
     stakedJettons: map<Address, StakedJettonInfo> = emptyMap();
 
     init(master: Address, owner: Address) {
@@ -48,22 +48,52 @@ trait StakingMaster with Common {
     lockedValue: Int;
 
     get fun userWallet(owner: Address): Address {
-        return self.getUserWallet(owner);
+        return contractAddress(self.getUserWallet(owner));
+    }
+
+    receive(msg: Release) {
+        self.receiveRelease(msg);
+    }
+
+    virtual fun receiveRelease(msg: Release) {
+        let ctx = context();
+        nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
+
+        let wallet = self.getUserWallet(msg.owner);
+
+        send(SendParameters{
+            to: contractAddress(wallet),
+            bounce: false,
+            value: 0,
+            mode: SendRemainingValue,
+            body: ReleaseInternal{
+                queryId: msg.queryId,
+                amount: msg.amount,
+                jettons: msg.jettons,
+                jettonsIdx: msg.jettonsIdx,
+                destination: msg.destination,
+                responseDestination: msg.responseDestination,
+                customPayload: msg.customPayload,
+                forwardTonAmount: msg.forwardTonAmount,
+                forwardPayload: msg.forwardPayload,
+            }.toCell(),
+        });
     }
 
     // getWalletContract creates a new wallet contract for the specified owner
-    virtual fun getUserWallet(owner: Address): Address {
+    virtual fun getUserWallet(owner: Address): StateInit {
         let init = initOf StakingWalletTemplate(
             myAddress(),
             owner,
         );
 
-        return contractAddress(init);
+        return init;
     }
 }
 
 trait StakingWallet with Common {
     owner: Address;
+    master: Address;
     staticTaxFee: Int;
     lockedValue: Int;
 
@@ -83,16 +113,18 @@ trait StakingWallet with Common {
         self.receiveTransferNotification(msg);
     }
 
-    receive(msg: Release) {
+    receive(msg: ReleaseInternal) {
         self.receiveRelease(msg);
     }
 
-    virtual fun receiveRelease(msg: Release) {
+    virtual fun receiveRelease(msg: ReleaseInternal) {
         let ctx = context();
+        nativeThrowUnless(codeUnauthorized, ctx.sender == self.master);
 
         // release ton coins
         if (msg.amount > 0) {
             nativeThrowUnless(codeBalanceNotSufficient, self.lockedValue >= msg.amount);
+            self.lockedValue -= msg.amount;
             send(SendParameters{
                 to: msg.destination,
                 bounce: false,
@@ -112,6 +144,17 @@ trait StakingWallet with Common {
             if (destination == null) {
                 destination = msg.destination;
             }
+
+            // update staked info
+            let stakedInfo = self.stakedJettons.get(jetton.jettonWallet);
+            nativeThrowUnless(codeInsufficientStakedJetton,
+                stakedInfo != null && stakedInfo!!.jettonAmount >= jetton.jettonAmount);
+            self.stakedJettons.set(
+                jetton.jettonWallet,
+                StakedJettonInfo{
+                    jettonAmount: stakedInfo!!.jettonAmount - jetton.jettonAmount,
+                }
+            );
 
             send(SendParameters{
                 to: jetton.jettonWallet,
