@@ -30,11 +30,18 @@ message Release {
     // the amount of TON coins to release
     amount: Int as coins;
     // the amount of jettons to release
-    jettons: StakedJettonInfo;
-    // the address to send the response to
+    jettons: map<Int as uint64, ReleaseJettonInfo>;
+    jettonsIdx: Int as uint64;
+    // the address of the jetton receiver
+    destination: Address;
+    // the address to send the excesses to
     responseDestination: Address;
-    // the custom payload to be sent with the response
+    // the custom payload to be sent with the released ton coins
     customPayload: Cell?;
+    // amount of TON to forward
+    forwardTonAmount: Int as coins;
+    // payload to forward
+    forwardPayload: Cell?;
 }
 
 struct ReleaseJettonInfo {
@@ -44,8 +51,8 @@ struct ReleaseJettonInfo {
     jettonAmount: Int as coins;
     jettonWallet: Address;
     // the address to receive the released jettons,
-    // if not set, the responseDestination in the Release message will be used.
-    responseDestination: Address?;
+    // if not set, the destination in the Release message will be used.
+    destination: Address?;
     customPayload: Cell?;
     // amount of TON to forward
     forwardTonAmount: Int as coins;

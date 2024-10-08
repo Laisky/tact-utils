@@ -83,6 +83,77 @@ trait StakingWallet with Common {
         self.receiveTransferNotification(msg);
     }
 
+    receive(msg: Release) {
+        self.receiveRelease(msg);
+    }
+
+    virtual fun receiveRelease(msg: Release) {
+        let ctx = context();
+
+        // release ton coins
+        if (msg.amount > 0) {
+            nativeThrowUnless(codeBalanceNotSufficient, self.lockedValue >= msg.amount);
+            send(SendParameters{
+                to: msg.destination,
+                bounce: false,
+                value: msg.amount,
+                body: msg.customPayload,
+            });
+        }
+
+        // release jettons
+        let totalCost = 0;
+        let i: Int = 0;
+        while (i < msg.jettonsIdx) {
+            let jetton = msg.jettons.get(i)!!;
+            totalCost += jetton.tonAmount;
+
+            let destination = jetton.destination;
+            if (destination == null) {
+                destination = msg.destination;
+            }
+
+            send(SendParameters{
+                to: jetton.jettonWallet,
+                bounce: false,
+                value: jetton.tonAmount,
+                body: TokenTransfer{
+                    queryId: msg.queryId,
+                    amount: jetton.jettonAmount,
+                    destination: destination!!,
+                    responseDestination: msg.responseDestination,
+                    customPayload: jetton.customPayload,
+                    forwardTonAmount: jetton.forwardTonAmount,
+                    forwardPayload: jetton.forwardPayload,
+                }.toCell(),
+            });
+        }
+
+        if (msg.forwardTonAmount > 0) {
+            totalCost += msg.forwardTonAmount;
+            send(SendParameters{
+                to: msg.responseDestination,
+                bounce: false,
+                value: msg.forwardTonAmount,
+                body: msg.forwardPayload,
+            });
+        }
+
+        // check cost
+        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= totalCost + self.staticTaxFee);
+
+        // refund
+        self.reserveValue(-msg.amount);
+        send(SendParameters{
+            to: msg.responseDestination,
+            bounce: false,
+            value: 0,
+            mode: SendRemainingBalance,
+            body: Excesses{
+                queryId: msg.queryId,
+            }.toCell(),
+        });
+    }
 
     virtual fun getStakedInfo(): StakedInfo {
         return StakedInfo{
@@ -115,7 +186,7 @@ trait StakingWallet with Common {
                 bounce: false,
                 value: stakeMsg.forwardTonAmount,
                 body: stakeMsg.forwardPayload,
-            })
+            });
         }
 
         // refund
@@ -128,7 +199,7 @@ trait StakingWallet with Common {
             body: Excesses{
                 queryId: msg.queryId,
             }.toCell(),
-        })
+        });
     }
 
     virtual fun receiveStakeToncoin(msg: StakeToncoin) {
@@ -156,6 +227,6 @@ trait StakingWallet with Common {
             body: Excesses{
                 queryId: msg.queryId,
             }.toCell(),
-        })
+        });
     }
 }
