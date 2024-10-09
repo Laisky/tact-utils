@@ -1,6 +1,17 @@
 {
-    "name": "attest",
+    "name": "@laisky/tact-utils",
     "version": "0.0.1",
+    "description": "useful utilities for TON Tact",
+    "author": "Laisky Cai",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Laisky/tact-utils"
+    },
+    "keywords": [
+        "TON",
+        "tact"
+    ],
     "scripts": {
         "start": "blueprint run",
         "build": "blueprint build",
