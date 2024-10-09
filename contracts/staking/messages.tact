@@ -58,9 +58,6 @@ message(0x51fa3a81) StakeRelease {
     owner: Address;
     // the address to receive the released ton coins
     destination: Address;
-    // the jetton wallet address to receive the released jettons.
-    // should be jetton wallet address, not the wallet address.
-    ownerJettonWallet: Address;
     // the address to send the excesses to
     responseDestination: Address;
     // the custom payload to be sent with the released ton coins
@@ -91,13 +88,13 @@ message(0xd07ddc09) StakeReleaseInternal {
 }
 
 struct StakeReleaseJettonInfo {
-    // the amount of ton send to jetton wallet to release Jettons,
-    // should be paid by the sender of the message.
+    // pay the token transfer fee,
+    // should be greater than forwardTonAmount.
     tonAmount: Int as coins;
     jettonAmount: Int as coins;
     jettonWallet: Address;
     // the address to receive the released jettons.
-    // should be jetton wallet address, not the wallet address.
+    // should be wallet address, not the jetton wallet address.
     destination: Address;
     customPayload: Cell?;
     // amount of TON to forward

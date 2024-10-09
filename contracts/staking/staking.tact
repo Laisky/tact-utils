@@ -165,6 +165,8 @@ trait StakingWallet with Common {
                     forwardPayload: jetton.forwardPayload,
                 }.toCell(),
             });
+
+            i += 1;
         }
 
         if (msg.forwardTonAmount > 0) {

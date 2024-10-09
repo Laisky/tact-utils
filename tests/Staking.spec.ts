@@ -65,6 +65,8 @@ describe('Staking', () => {
             )
         );
 
+        console.log(`admin: ${admin.address}`);
+        console.log(`user: ${user.address}`);
         console.log(`stakeMasterContract: ${stakeMasterContract.address}`);
         console.log(`jettonMasterContract: ${jettonMasterContract.address}`);
         console.log(`userStakeWallet: ${userStakeWallet.address}`);
@@ -237,17 +239,17 @@ describe('Staking', () => {
         expect(userStakedInfo.stakedJettons.get(userStakeJettonWallet.address)!!.jettonAmount).toEqual(toNano("1"));
     });
 
-    it("release toncoin", async () => {
+    it("release", async () => {
         let releaseJettons = Dictionary.empty<bigint, StakeReleaseJettonInfo>();
         releaseJettons.set(BigInt("0"), {
             $$type: "StakeReleaseJettonInfo",
-            tonAmount: toNano("0"),
+            tonAmount: toNano("0.2"),
             jettonAmount: toNano("1"),
             jettonWallet: userStakeJettonWallet.address,
             forwardTonAmount: toNano("0.1"),
-            destination: null,
+            destination: user.address,
             customPayload: null,
-            forwardPayload: null,
+            forwardPayload: comment("forward_payload"),
         });
 
         const tx = await stakeMasterContract.send(
@@ -263,13 +265,14 @@ describe('Staking', () => {
                 amount: toNano("0.5"),
                 jettons: releaseJettons,
                 jettonsIdx: BigInt('1'),
-                destination: userJettonWallet.address,
+                destination: user.address,
                 responseDestination: user.address,
                 customPayload: comment("custom_payload"),
                 forwardPayload: comment("forward_payload"),
                 forwardTonAmount: toNano("0.1"),
             }
         );
+        console.log("printTransactionFees");
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
@@ -279,11 +282,50 @@ describe('Staking', () => {
             op: 0x51fa3a81,  // StakeRelease
         });
         expect(tx.transactions).toHaveTransaction({
+            from: stakeMasterContract.address,
+            to: userStakeWallet.address,
+            success: true,
+            op: 0xd07ddc09,  // StakeReleaseInternal
+        });
+        expect(tx.transactions).toHaveTransaction({
             from: userStakeWallet.address,
             to: user.address,
             success: true,
             op: 0xe656dfa2,  // StakeReleaseNotification
         });
-    });
+        expect(tx.transactions).toHaveTransaction({
+            from: userStakeWallet.address,
+            to: userStakeJettonWallet.address,
+            success: true,
+            op: 0xf8a7ea5,  // TokenTransfer
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: userStakeJettonWallet.address,
+            to: userJettonWallet.address,
+            success: true,
+            op: 0x178d4519,  // TokenTransferInternal
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: userJettonWallet.address,
+            to: user.address,
+            success: true,
+            op: 0x7362d09c,  // TransferNotification
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: userStakeWallet.address,
+            to: user.address,
+            success: true,
+            op: 0xd53276db,  // Excesses
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: userJettonWallet.address,
+            to: user.address,
+            success: true,
+            op: 0xd53276db,  // Excesses
+        });
 
+        const userStakedInfo = await userStakeWallet.getStakedInfo();
+        expect(userStakedInfo.stakedTonAmount).toEqual(toNano("0"));
+        expect(userStakedInfo.stakedJettons.get(userStakeJettonWallet.address)!!.jettonAmount).toEqual(toNano("0"));
+    });
 });
