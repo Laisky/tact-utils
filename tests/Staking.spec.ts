@@ -178,7 +178,7 @@ describe('Staking', () => {
                 queryId: BigInt(Math.ceil(Math.random() * 1000000)),
                 amount: toNano("1"),
                 destination: userStakeWallet.address,
-                responseDestination: user.address,
+                responseDestination: userStakeWallet.address,
                 forwardTonAmount: toNano("0.5"),
                 forwardPayload: beginCell()
                     .store(storeStakeJetton({
