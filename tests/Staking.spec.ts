@@ -71,4 +71,51 @@ describe('Staking', () => {
         console.log(`userJettonWallet: ${userJettonWallet.address}`);
     });
 
+    it("prepare staking master", async () => {
+        const tx = await stakeMasterContract.send(
+            admin.getSender(),
+            {
+                value: toNano("1"),
+                bounce: false,
+            },
+            {
+                $$type: "Deploy",
+                queryId: BigInt(Math.ceil(Math.random() * 1000000)),
+            }
+        );
+        printTransactionFees(tx.transactions);
+
+        console.log(`stakeMasterContract deployed at ${stakeMasterContract.address}`);
+    });
+
+    it("prepare jetton", async () => {
+        const tx = await jettonMasterContract.send(
+            admin.getSender(),
+            {
+                value: toNano("1"),
+                bounce: false,
+            },
+            {
+                $$type: "MintJetton",
+                queryId: BigInt(Math.ceil(Math.random() * 1000000)),
+                amount: toNano("10"),
+                receiver: user.address,
+                responseDestination: admin.address,
+                forwardTonAmount: toNano("0"),
+                forwardPayload: null,
+            }
+        );
+        printTransactionFees(tx.transactions);
+
+        console.log(`jettonMasterContract deployed at ${jettonMasterContract.address}`);
+        console.log(`userJettonWallet: ${userJettonWallet.address}`);
+
+        expect(tx.transactions).toHaveTransaction({
+            from: jettonMasterContract.address,
+            to: userJettonWallet.address,
+            success: true,
+            op: 0x178d4519,  // TokenTransferInternal
+        });
+    });
+
 });
