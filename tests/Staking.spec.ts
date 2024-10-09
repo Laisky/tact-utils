@@ -19,12 +19,14 @@ describe('Staking', () => {
 
     let admin: SandboxContract<TreasuryContract>;
     let user: SandboxContract<TreasuryContract>;
+    // let forwardReceiver: SandboxContract<TreasuryContract>;
 
     beforeAll(async () => {
         blockchain = await Blockchain.create();
 
         admin = await blockchain.treasury('deployer');
         user = await blockchain.treasury('user');
+        // forwardReceiver = await blockchain.treasury('forwardReceiver');
 
         jettonMasterContract = blockchain.openContract(
             await JettonMasterTemplate.fromInit(
@@ -117,5 +119,39 @@ describe('Staking', () => {
             op: 0x178d4519,  // TokenTransferInternal
         });
     });
+
+    it("staking toncoin", async () => {
+        const userStakeAddr = await stakeMasterContract.getUserWallet(user.address);
+        expect(userStakeAddr).toEqual(userStakeWallet.address);
+
+        const tx = await userStakeWallet.send(
+            user.getSender(),
+            {
+                value: toNano("2"),
+                bounce: false,
+            },
+            {
+                $$type: "StakeToncoin",
+                queryId: BigInt(Math.ceil(Math.random() * 1000000)),
+                amount: toNano("0.5"),
+                responseDestination: user.address,
+                forwardTonAmount: toNano("0.5"),
+                forwardPayload: comment("forward_payload"),
+            }
+        );
+        printTransactionFees(tx.transactions);
+
+        expect(tx.transactions).toHaveTransaction({
+            from: user.address,
+            to: userStakeWallet.address,
+            success: true,
+            op: 0x7ac4404c,  // StakeToncoin
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: ownerJettonWallet.address,
+            to: forwardReceiver.address,
+            success: true,
+            op: 0xd53276db,  // Excesses
+        });
 
 });

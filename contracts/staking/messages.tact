@@ -1,4 +1,4 @@
-message StakeToncoin {
+message(0x7ac4404c) StakeToncoin {
     queryId: Int as uint64;
     // amount of TON coins to stake
     amount: Int;
@@ -6,6 +6,27 @@ message StakeToncoin {
     responseDestination: Address;
     // amount of TON to forward
     forwardTonAmount: Int as coins;
+    // payload to forward
+    forwardPayload: Cell?;
+}
+
+message(0x2c7981f1) StakeNotification {
+    queryId: Int as uint64;
+    // the amount of TON coins staked
+    amount: Int as coins;
+    jetton: StakeJetton?;
+    sender: Address;
+    forwardPayload: Cell?;
+}
+
+message StakeReleaseNotification {
+    queryId: Int as uint64;
+    // the amount of TON coins released
+    amount: Int as coins;
+    jettons: map<Int as uint64, StakeReleaseJettonInfo>;
+    jettonsIdx: Int as uint64;
+    // the address of the jetton receiver
+    destination: Address;
     // payload to forward
     forwardPayload: Cell?;
 }
@@ -25,13 +46,13 @@ struct StakeJetton {
     forwardPayload: Cell?;
 }
 
-message Release {
+message(0x51fa3a81) StakeRelease {
     queryId: Int as uint64;
     owner: Address;
     // the amount of TON coins to release
     amount: Int as coins;
     // the amount of jettons to release
-    jettons: map<Int as uint64, ReleaseJettonInfo>;
+    jettons: map<Int as uint64, StakeReleaseJettonInfo>;
     jettonsIdx: Int as uint64;
     // the address of the jetton receiver
     destination: Address;
@@ -45,12 +66,12 @@ message Release {
     forwardPayload: Cell?;
 }
 
-message ReleaseInternal {
+message(0xd07ddc09) StakeReleaseInternal {
     queryId: Int as uint64;
     // the amount of TON coins to release
     amount: Int as coins;
     // the amount of jettons to release
-    jettons: map<Int as uint64, ReleaseJettonInfo>;
+    jettons: map<Int as uint64, StakeReleaseJettonInfo>;
     jettonsIdx: Int as uint64;
     // the address of the jetton receiver
     destination: Address;
@@ -64,7 +85,7 @@ message ReleaseInternal {
     forwardPayload: Cell?;
 }
 
-struct ReleaseJettonInfo {
+struct StakeReleaseJettonInfo {
     // the amount of ton send to jetton wallet to release Jettons,
     // should be paid by the sender of the message.
     tonAmount: Int as coins;

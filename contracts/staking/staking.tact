@@ -51,11 +51,11 @@ trait StakingMaster with Common {
         return contractAddress(self.getUserWallet(owner));
     }
 
-    receive(msg: Release) {
+    receive(msg: StakeRelease) {
         self.receiveRelease(msg);
     }
 
-    virtual fun receiveRelease(msg: Release) {
+    virtual fun receiveRelease(msg: StakeRelease) {
         let ctx = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
 
@@ -66,7 +66,7 @@ trait StakingMaster with Common {
             bounce: false,
             value: 0,
             mode: SendRemainingValue,
-            body: ReleaseInternal{
+            body: StakeReleaseInternal{
                 queryId: msg.queryId,
                 amount: msg.amount,
                 jettons: msg.jettons,
@@ -113,11 +113,11 @@ trait StakingWallet with Common {
         self.receiveTransferNotification(msg);
     }
 
-    receive(msg: ReleaseInternal) {
+    receive(msg: StakeReleaseInternal) {
         self.receiveRelease(msg);
     }
 
-    virtual fun receiveRelease(msg: ReleaseInternal) {
+    virtual fun receiveRelease(msg: StakeReleaseInternal) {
         let ctx = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.master);
 
@@ -178,7 +178,14 @@ trait StakingWallet with Common {
                 to: msg.responseDestination,
                 bounce: false,
                 value: msg.forwardTonAmount,
-                body: msg.forwardPayload,
+                body: StakeReleaseNotification{
+                    queryId: msg.queryId,
+                    amount: msg.amount,
+                    jettons: msg.jettons,
+                    jettonsIdx: msg.jettonsIdx,
+                    destination: msg.destination,
+                    forwardPayload: msg.forwardPayload,
+                }.toCell(),
             });
         }
 
@@ -228,7 +235,13 @@ trait StakingWallet with Common {
                 to: stakeMsg.responseDestination,
                 bounce: false,
                 value: stakeMsg.forwardTonAmount,
-                body: stakeMsg.forwardPayload,
+                body: StakeNotification{
+                    queryId: msg.queryId,
+                    amount: stakeMsg.tonAmount,
+                    jetton: stakeMsg,
+                    sender: msg.sender,
+                    forwardPayload: stakeMsg.forwardPayload,
+                }.toCell(),
             });
         }
 
@@ -256,7 +269,13 @@ trait StakingWallet with Common {
                 to: msg.responseDestination,
                 bounce: false,
                 value: msg.forwardTonAmount,
-                body: msg.forwardPayload,
+                body: StakeNotification{
+                    queryId: msg.queryId,
+                    amount: msg.amount,
+                    jetton: null,
+                    sender: ctx.sender,
+                    forwardPayload: msg.forwardPayload,
+                }.toCell(),
             })
         }
 
