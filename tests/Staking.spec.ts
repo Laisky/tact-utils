@@ -122,7 +122,7 @@ describe('Staking', () => {
 
     it("staking toncoin", async () => {
         const userStakeAddr = await stakeMasterContract.getUserWallet(user.address);
-        expect(userStakeAddr).toEqual(userStakeWallet.address);
+        expect(userStakeAddr.equals(userStakeWallet.address)).toBeTruthy();
 
         const tx = await userStakeWallet.send(
             user.getSender(),
@@ -148,10 +148,20 @@ describe('Staking', () => {
             op: 0x7ac4404c,  // StakeToncoin
         });
         expect(tx.transactions).toHaveTransaction({
-            from: ownerJettonWallet.address,
-            to: forwardReceiver.address,
+            from: userStakeWallet.address,
+            to: user.address,
             success: true,
             op: 0xd53276db,  // Excesses
         });
+        expect(tx.transactions).toHaveTransaction({
+            from: userStakeWallet.address,
+            to: user.address,
+            success: true,
+            op: 0x2c7981f1,  // StakeNotification
+        });
+
+        const userStakedInfo = await userStakeWallet.getStakedInfo();
+        expect(userStakedInfo.stakedTonAmount).toEqual(toNano("0.5"));
+    });
 
 });
