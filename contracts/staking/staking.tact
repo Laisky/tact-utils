@@ -140,11 +140,6 @@ trait StakingWallet with Common {
             let jetton = msg.jettons.get(i)!!;
             totalCost += jetton.tonAmount;
 
-            let destination = jetton.destination;
-            if (destination == null) {
-                destination = msg.destination;
-            }
-
             // update staked info
             let stakedInfo = self.stakedJettons.get(jetton.jettonWallet);
             nativeThrowUnless(codeInsufficientStakedJetton,
@@ -163,7 +158,7 @@ trait StakingWallet with Common {
                 body: TokenTransfer{
                     queryId: msg.queryId,
                     amount: jetton.jettonAmount,
-                    destination: destination!!,
+                    destination: jetton.destination,
                     responseDestination: msg.responseDestination,
                     customPayload: jetton.customPayload,
                     forwardTonAmount: jetton.forwardTonAmount,

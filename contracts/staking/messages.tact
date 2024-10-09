@@ -19,7 +19,7 @@ message(0x2c7981f1) StakeNotification {
     forwardPayload: Cell?;
 }
 
-message StakeReleaseNotification {
+message(0xe656dfa2) StakeReleaseNotification {
     queryId: Int as uint64;
     // the amount of TON coins released
     amount: Int as coins;
@@ -46,16 +46,21 @@ struct StakeJetton {
     forwardPayload: Cell?;
 }
 
+// only stakingMaster's owner can call this message
 message(0x51fa3a81) StakeRelease {
     queryId: Int as uint64;
-    owner: Address;
     // the amount of TON coins to release
     amount: Int as coins;
     // the amount of jettons to release
     jettons: map<Int as uint64, StakeReleaseJettonInfo>;
     jettonsIdx: Int as uint64;
-    // the address of the jetton receiver
+    // the address to release the ton coins to
+    owner: Address;
+    // the address to receive the released ton coins
     destination: Address;
+    // the jetton wallet address to receive the released jettons.
+    // should be jetton wallet address, not the wallet address.
+    ownerJettonWallet: Address;
     // the address to send the excesses to
     responseDestination: Address;
     // the custom payload to be sent with the released ton coins
@@ -73,7 +78,7 @@ message(0xd07ddc09) StakeReleaseInternal {
     // the amount of jettons to release
     jettons: map<Int as uint64, StakeReleaseJettonInfo>;
     jettonsIdx: Int as uint64;
-    // the address of the jetton receiver
+    // the address to receive the released ton coins
     destination: Address;
     // the address to send the excesses to
     responseDestination: Address;
@@ -91,9 +96,9 @@ struct StakeReleaseJettonInfo {
     tonAmount: Int as coins;
     jettonAmount: Int as coins;
     jettonWallet: Address;
-    // the address to receive the released jettons,
-    // if not set, the destination in the Release message will be used.
-    destination: Address?;
+    // the address to receive the released jettons.
+    // should be jetton wallet address, not the wallet address.
+    destination: Address;
     customPayload: Cell?;
     // amount of TON to forward
     forwardTonAmount: Int as coins;

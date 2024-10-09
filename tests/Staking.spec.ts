@@ -1,11 +1,12 @@
-import { beginCell, comment, toNano } from '@ton/core';
+import { beginCell, comment, Dictionary, toNano } from '@ton/core';
 import { Blockchain, printTransactionFees, SandboxContract, TreasuryContract } from '@ton/sandbox';
 import '@ton/test-utils';
 
 import { JettonMasterTemplate } from '../build/Sample/tact_JettonMasterTemplate';
 import { JettonWalletTemplate } from '../build/Sample/tact_JettonWalletTemplate';
-import { StakingMasterTemplate, storeStakeJetton } from '../build/Staking/tact_StakingMasterTemplate';
+import { StakeReleaseJettonInfo, StakingMasterTemplate, storeStakeJetton } from '../build/Staking/tact_StakingMasterTemplate';
 import { StakingWalletTemplate } from '../build/Staking/tact_StakingWalletTemplate';
+import { tonDeepLink } from '@ton/blueprint';
 
 describe('Staking', () => {
 
@@ -19,14 +20,12 @@ describe('Staking', () => {
 
     let admin: SandboxContract<TreasuryContract>;
     let user: SandboxContract<TreasuryContract>;
-    // let forwardReceiver: SandboxContract<TreasuryContract>;
 
     beforeAll(async () => {
         blockchain = await Blockchain.create();
 
         admin = await blockchain.treasury('deployer');
         user = await blockchain.treasury('user');
-        // forwardReceiver = await blockchain.treasury('forwardReceiver');
 
         jettonMasterContract = blockchain.openContract(
             await JettonMasterTemplate.fromInit(
@@ -236,6 +235,55 @@ describe('Staking', () => {
 
         const userStakedInfo = await userStakeWallet.getStakedInfo();
         expect(userStakedInfo.stakedJettons.get(userStakeJettonWallet.address)!!.jettonAmount).toEqual(toNano("1"));
+    });
+
+    it("release toncoin", async () => {
+        let releaseJettons = Dictionary.empty<bigint, StakeReleaseJettonInfo>();
+        releaseJettons.set(BigInt("0"), {
+            $$type: "StakeReleaseJettonInfo",
+            tonAmount: toNano("0"),
+            jettonAmount: toNano("1"),
+            jettonWallet: userStakeJettonWallet.address,
+            forwardTonAmount: toNano("0.1"),
+            destination: null,
+            customPayload: null,
+            forwardPayload: null,
+        });
+
+        const tx = await stakeMasterContract.send(
+            admin.getSender(),
+            {
+                value: toNano("2"),
+                bounce: false,
+            },
+            {
+                $$type: "StakeRelease",
+                queryId: BigInt(Math.ceil(Math.random() * 1000000)),
+                owner: user.address,
+                amount: toNano("0.5"),
+                jettons: releaseJettons,
+                jettonsIdx: BigInt('1'),
+                destination: userJettonWallet.address,
+                responseDestination: user.address,
+                customPayload: comment("custom_payload"),
+                forwardPayload: comment("forward_payload"),
+                forwardTonAmount: toNano("0.1"),
+            }
+        );
+        printTransactionFees(tx.transactions);
+
+        expect(tx.transactions).toHaveTransaction({
+            from: admin.address,
+            to: stakeMasterContract.address,
+            success: true,
+            op: 0x51fa3a81,  // StakeRelease
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: userStakeWallet.address,
+            to: user.address,
+            success: true,
+            op: 0xe656dfa2,  // StakeReleaseNotification
+        });
     });
 
 });
