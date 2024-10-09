@@ -1,10 +1,10 @@
-import { comment, toNano } from '@ton/core';
+import { beginCell, comment, toNano } from '@ton/core';
 import { Blockchain, printTransactionFees, SandboxContract, TreasuryContract } from '@ton/sandbox';
 import '@ton/test-utils';
 
 import { JettonMasterTemplate } from '../build/Sample/tact_JettonMasterTemplate';
 import { JettonWalletTemplate } from '../build/Sample/tact_JettonWalletTemplate';
-import { StakingMasterTemplate } from '../build/Staking/tact_StakingMasterTemplate';
+import { StakingMasterTemplate, storeStakeJetton } from '../build/Staking/tact_StakingMasterTemplate';
 import { StakingWalletTemplate } from '../build/Staking/tact_StakingWalletTemplate';
 
 describe('Staking', () => {
@@ -85,6 +85,7 @@ describe('Staking', () => {
                 queryId: BigInt(Math.ceil(Math.random() * 1000000)),
             }
         );
+        console.log("printTransactionFees");
         printTransactionFees(tx.transactions);
 
         console.log(`stakeMasterContract deployed at ${stakeMasterContract.address}`);
@@ -107,6 +108,7 @@ describe('Staking', () => {
                 forwardPayload: null,
             }
         );
+        console.log("printTransactionFees");
         printTransactionFees(tx.transactions);
 
         console.log(`jettonMasterContract deployed at ${jettonMasterContract.address}`);
@@ -162,6 +164,73 @@ describe('Staking', () => {
 
         const userStakedInfo = await userStakeWallet.getStakedInfo();
         expect(userStakedInfo.stakedTonAmount).toEqual(toNano("0.5"));
+    });
+
+    it("staking jetton", async () => {
+        const tx = await userJettonWallet.send(
+            user.getSender(),
+            {
+                value: toNano("1"),
+                bounce: false,
+            },
+            {
+                $$type: "TokenTransfer",
+                queryId: BigInt(Math.ceil(Math.random() * 1000000)),
+                amount: toNano("1"),
+                destination: userStakeWallet.address,
+                responseDestination: user.address,
+                forwardTonAmount: toNano("0.5"),
+                forwardPayload: beginCell()
+                    .store(storeStakeJetton({
+                        $$type: "StakeJetton",
+                        tonAmount: toNano("0"),
+                        jettonAmount: toNano("1"),
+                        jettonWallet: userStakeJettonWallet.address,
+                        responseDestination: user.address,
+                        forwardTonAmount: toNano("0.1"),
+                        forwardPayload: comment("forward_payload"),
+                    }))
+                    .endCell(),
+                customPayload: null,
+            }
+        );
+        console.log("printTransactionFees");
+        printTransactionFees(tx.transactions);
+
+        expect(tx.transactions).toHaveTransaction({
+            from: user.address,
+            to: userJettonWallet.address,
+            success: true,
+            op: 0xf8a7ea5,  // TokenTransfer
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: userJettonWallet.address,
+            to: userStakeJettonWallet.address,
+            success: true,
+            op: 0x178d4519,  // TokenTransferInternal
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: userStakeJettonWallet.address,
+            to: user.address,
+            success: true,
+            op: 0xd53276db,  // Excesses
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: userStakeJettonWallet.address,
+            to: user.address,
+            success: true,
+            op: 0x7362d09c,  // TransferNotification
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: userStakeWallet.address,
+            to: user.address,
+            success: true,
+            op: 0x2c7981f1,  // StakeNotification
+        });
+
+        const userStakedInfo = await userStakeWallet.getStakedInfo();
+        expect(userStakedInfo.stakedJettons.get(userStakeJettonWallet.address)).toEqual(toNano("1"));
+
     });
 
 });
