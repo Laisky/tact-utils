@@ -211,13 +211,13 @@ describe('Staking', () => {
         });
         expect(tx.transactions).toHaveTransaction({
             from: userStakeJettonWallet.address,
-            to: user.address,
+            to: userStakeWallet.address,
             success: true,
             op: 0xd53276db,  // Excesses
         });
         expect(tx.transactions).toHaveTransaction({
             from: userStakeJettonWallet.address,
-            to: user.address,
+            to: userStakeWallet.address,
             success: true,
             op: 0x7362d09c,  // TransferNotification
         });
@@ -227,10 +227,15 @@ describe('Staking', () => {
             success: true,
             op: 0x2c7981f1,  // StakeNotification
         });
+        expect(tx.transactions).toHaveTransaction({
+            from: userStakeWallet.address,
+            to: user.address,
+            success: true,
+            op: 0xd53276db,  // Excesses
+        });
 
         const userStakedInfo = await userStakeWallet.getStakedInfo();
-        expect(userStakedInfo.stakedJettons.get(userStakeJettonWallet.address)).toEqual(toNano("1"));
-
+        expect(userStakedInfo.stakedJettons.get(userStakeJettonWallet.address)!!.jettonAmount).toEqual(toNano("1"));
     });
 
 });

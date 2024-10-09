@@ -86,7 +86,15 @@ trait Common with Txable, Deployable {
     }
 
     virtual fun receiveExcesses(msg: Excesses) {
-        return;
+        self.reserveValue(0);
+        send(SendParameters{
+                to: self.owner,
+                bounce: false,
+                value: 0,
+                mode: SendRemainingBalance,
+                body: msg.toCell(),
+            }
+        );
     }
 }
 
