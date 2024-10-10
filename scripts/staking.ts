@@ -9,7 +9,9 @@ import { StakeReleaseJettonInfo, StakingMasterTemplate, storeStakeJetton } from 
 import { StakingWalletTemplate } from '../build/Staking/tact_StakingWalletTemplate';
 
 export async function run(provider: NetworkProvider): Promise<void> {
+    console.log("-------------------------------------")
     console.log('>> mint jetton to yourself');
+    console.log("-------------------------------------")
     const sampleMasterContract = await getMasterContract(provider);
     const sampleContract = await provider.open(
         await Sample.fromInit(
@@ -35,7 +37,9 @@ export async function run(provider: NetworkProvider): Promise<void> {
         }
     );
 
+    console.log("-------------------------------------")
     console.log('>> wait jetton wallet deployed');
+    console.log("-------------------------------------")
     const jettonMasterContract = await provider.open(
         await JettonMasterTemplate.fromInit(
             sampleContract.address,
@@ -54,7 +58,9 @@ export async function run(provider: NetworkProvider): Promise<void> {
     );
     await provider.waitForDeploy(jettonWalletContract.address, 50);
 
-    console.log('>> deploy staking contract');
+    console.log("-------------------------------------")
+    console.log('>> prepare staking master contract');
+    console.log("-------------------------------------")
     const stakingMasterContract = await provider.open(
         await StakingMasterTemplate.fromInit(
             provider.sender().address!!,
@@ -63,42 +69,33 @@ export async function run(provider: NetworkProvider): Promise<void> {
     const stakingWalletContract = await provider.open(
         await StakingWalletTemplate.fromInit(
             stakingMasterContract.address,
-            jettonWalletContract.address,
+            provider.sender().address!!,
         )
     );
     const stakingJettonWalletContract = await provider.open(
         await JettonWalletTemplate.fromInit(
             jettonMasterContract.address,
-            stakingWalletContract.address,
+            stakingMasterContract.address,
         )
     );
 
-    await stakingMasterContract.send(
-        provider.sender(),
-        {
-            value: toNano("1"),
-            bounce: false,
-        },
-        {
-            $$type: "Deploy",
-            queryId: BigInt(randomInt()),
-        }
-    );
-    await stakingWalletContract.send(
-        provider.sender(),
-        {
-            value: toNano("1"),
-            bounce: false,
-        },
-        {
-            $$type: "Deploy",
-            queryId: BigInt(randomInt()),
-        }
-    );
-    await provider.waitForDeploy(stakingWalletContract.address, 50);
+    // await stakingMasterContract.send(
+    //     provider.sender(),
+    //     {
+    //         value: toNano("1"),
+    //         bounce: false,
+    //     },
+    //     {
+    //         $$type: "Deploy",
+    //         queryId: BigInt(randomInt()),
+    //     }
+    // );
+    // await provider.waitForDeploy(stakingMasterContract.address, 50);
 
+    console.log("-------------------------------------")
     console.log("staking ton coin...")
-    await stakingWalletContract.send(
+    console.log("-------------------------------------")
+    await stakingMasterContract.send(
         provider.sender(),
         {
             value: toNano("1"),
@@ -107,14 +104,16 @@ export async function run(provider: NetworkProvider): Promise<void> {
         {
             $$type: "StakeToncoin",
             queryId: BigInt(randomInt()),
-            amount: toNano("0.1"),
+            amount: toNano("0.01"),
             responseDestination: provider.sender().address!!,
             forwardTonAmount: toNano("0.1"),
             forwardPayload: comment("forward_payload"),
         }
     );
 
+    console.log("-------------------------------------")
     console.log("staking jetton...")
+    console.log("-------------------------------------")
     await jettonWalletContract.send(
         provider.sender(),
         {
@@ -125,15 +124,17 @@ export async function run(provider: NetworkProvider): Promise<void> {
             $$type: "TokenTransfer",
             queryId: BigInt(Math.ceil(Math.random() * 1000000)),
             amount: toNano("1"),
-            destination: stakingWalletContract.address,
-            responseDestination: stakingWalletContract.address,
+            destination: stakingMasterContract.address,
+            responseDestination: stakingMasterContract.address,
             forwardTonAmount: toNano("0.2"),
             forwardPayload: beginCell()
                 .store(storeStakeJetton({
                     $$type: "StakeJetton",
-                    tonAmount: toNano("0"),
-                    jettonAmount: toNano("1"),
-                    jettonWallet: stakingJettonWalletContract.address,
+                    queryId: null,
+                    jettonWallet: null,
+                    sender: null,
+                    jettonAmount: null,
+                    tonAmount: toNano("0.01"),
                     responseDestination: provider.sender().address!!,
                     forwardTonAmount: toNano("0.1"),
                     forwardPayload: comment("forward_payload"),

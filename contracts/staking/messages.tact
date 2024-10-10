@@ -31,10 +31,10 @@ message(0xe656dfa2) StakeReleaseNotification {
     forwardPayload: Cell?;
 }
 
-message StakeJetton {
+message(0x6ab57824) StakeJetton {
     queryId: Int? as uint64;
     tonAmount: Int as coins;
-    jettonAmount: Int as coins;
+    jettonAmount: Int? as coins;
     // Jetton wallet address of the staking master contract.
     // the value will set by the staking master contract.
     jettonWallet: Address?;

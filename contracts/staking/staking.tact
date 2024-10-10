@@ -105,17 +105,18 @@ trait StakingMaster with Common {
     virtual fun receiveTransferNotification(msg: TransferNotification) {
         let ctx = context();
         nativeThrowUnless(codeForwardPayloadInvalid, msg.forwardPayload != null);
+        nativeThrowUnless(codeStakeAmountMustBePositive, msg.amount >= 0);
 
         let stakeMsg = StakeJetton.fromCell(msg.forwardPayload!!);
         nativeThrowUnless(codeInflowValueNotSufficient,
             ctx.value >= stakeMsg.tonAmount + stakeMsg.forwardTonAmount + self.staticTax);
-        nativeThrowUnless(codeStakeAmountMustBePositive, stakeMsg.tonAmount > 0);
-        nativeThrowUnless(codeStakeAmountMustBePositive, stakeMsg.jettonAmount > 0);
+        nativeThrowUnless(codeStakeAmountMustBePositive, stakeMsg.tonAmount >= 0);
 
         let userStakeWallet = self.getUserWallet(msg.sender);
         stakeMsg.queryId = msg.queryId;
         stakeMsg.jettonWallet = sender();
         stakeMsg.sender = msg.sender;
+        stakeMsg.jettonAmount = msg.amount;
 
         // update balance for user's stake wallet
         self.reserveValue(0);
@@ -172,18 +173,19 @@ trait StakingWallet with Common {
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.master);
         nativeThrowUnless(codeInflowValueNotSufficient,
             ctx.value >= msg.tonAmount + msg.forwardTonAmount + self.staticTax);
-        nativeThrowUnless(codeStakeAmountMustBePositive, msg.tonAmount > 0);
-        nativeThrowUnless(codeStakeAmountMustBePositive, msg.jettonAmount > 0);
         nativeThrowUnless(codeMsgValueInvalid, msg.jettonWallet != null);
         nativeThrowUnless(codeMsgValueInvalid, msg.sender != null);
         nativeThrowUnless(codeMsgValueInvalid, msg.queryId != null);
+        nativeThrowUnless(codeMsgValueInvalid, msg.jettonAmount != null);
+        nativeThrowUnless(codeStakeAmountMustBePositive, msg.tonAmount >= 0);
+        nativeThrowUnless(codeStakeAmountMustBePositive, msg.jettonAmount!! >= 0);
 
         // update staked info
         self.lockedValue += msg.tonAmount;
         self.stakedJettons.set(
             msg.jettonWallet!!,
             StakedJettonInfo{
-                jettonAmount: msg.jettonAmount,
+                jettonAmount: msg.jettonAmount!!,
             }
         );
 
