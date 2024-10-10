@@ -185,7 +185,7 @@ describe('Staking', () => {
                 amount: toNano("1"),
                 destination: stakeMasterContract.address,
                 responseDestination: stakeMasterContract.address,
-                forwardTonAmount: toNano("0.2"),
+                forwardTonAmount: toNano("0.5"),
                 forwardPayload: beginCell()
                     .store(storeStakeJetton({
                         $$type: "StakeJetton",
@@ -193,7 +193,7 @@ describe('Staking', () => {
                         jettonWallet: null,
                         sender: null,
                         jettonAmount: null,
-                        tonAmount: toNano("0.5"),
+                        tonAmount: toNano("0.1"),
                         responseDestination: user.address,
                         forwardTonAmount: toNano("0.1"),
                         forwardPayload: comment("forward_payload"),

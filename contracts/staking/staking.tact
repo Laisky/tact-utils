@@ -30,7 +30,9 @@ contract StakingWalletTemplate with StakingWallet {
     master: Address;
     staticTax: Int as coins = ton("0.001");
     lockedValue: Int as coins = 0;
+
     stakedJettons: map<Address, StakedJettonInfo> = emptyMap();
+    stakedTon: Int as coins = 0;
 
     init(master: Address, owner: Address) {
         self.owner = owner;
@@ -214,6 +216,7 @@ trait StakingWallet with Common {
     // stakedJettons is the map of staked jettons.
     // key is the address of the jetton wallet contract.
     stakedJettons: map<Address, StakedJettonInfo>;
+    stakedTon: Int;
 
     get fun stakedInfo(): StakedInfo {
         return self.getStakedInfo();
@@ -243,8 +246,11 @@ trait StakingWallet with Common {
         nativeThrowUnless(codeStakeAmountMustBePositive, msg.tonAmount >= 0);
         nativeThrowUnless(codeStakeAmountMustBePositive, msg.jettonAmount!! >= 0);
 
+        dump("stake jetton wallet");
+        dump(msg.jettonWallet!!.toString());
+
         // update staked info
-        self.lockedValue += msg.tonAmount;
+        self.stakedTon += msg.tonAmount;
         self.stakedJettons.set(
             msg.jettonWallet!!,
             StakedJettonInfo{
@@ -268,7 +274,7 @@ trait StakingWallet with Common {
         }
 
         // refund
-        self.reserveValue(msg.tonAmount);
+        self.reserveValue(0);
         send(SendParameters{
             to: msg.responseDestination,
             bounce: false,
@@ -286,8 +292,8 @@ trait StakingWallet with Common {
 
         // release ton coins
         if (msg.amount > 0) {
-            nativeThrowUnless(codeBalanceNotSufficient, self.lockedValue >= msg.amount);
-            self.lockedValue -= msg.amount;
+            nativeThrowUnless(codeInsufficientStakedTon, self.stakedTon >= msg.amount);
+            self.stakedTon -= msg.amount;
         }
 
         // release jettons
@@ -299,8 +305,11 @@ trait StakingWallet with Common {
 
             // update staked info
             let stakedInfo = self.stakedJettons.get(jetton.jettonWallet);
+
+            nativeThrowUnless(codeStakeJettonNotFound, stakedInfo != null);
             nativeThrowUnless(codeInsufficientStakedJetton,
-                stakedInfo != null && stakedInfo!!.jettonAmount >= jetton.jettonAmount);
+                stakedInfo!!.jettonAmount >= jetton.jettonAmount);
+
             self.stakedJettons.set(
                 jetton.jettonWallet,
                 StakedJettonInfo{
@@ -328,7 +337,7 @@ trait StakingWallet with Common {
 
     virtual fun getStakedInfo(): StakedInfo {
         return StakedInfo{
-            stakedTonAmount: self.lockedValue,
+            stakedTonAmount: self.stakedTon,
             stakedJettons: self.stakedJettons,
         }
     }
@@ -338,6 +347,8 @@ trait StakingWallet with Common {
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.master);
         nativeThrowUnless(codeInflowValueNotSufficient,
             ctx.value >= msg.forwardTonAmount + self.staticTax);
+
+        self.stakedTon += msg.amount;
 
         if (msg.forwardTonAmount > 0) {
             send(SendParameters{
@@ -355,7 +366,7 @@ trait StakingWallet with Common {
         }
 
         // refund
-        self.reserveValue(msg.amount);
+        self.reserveValue(0);
         send(SendParameters{
             to: msg.responseDestination,
             bounce: false,
