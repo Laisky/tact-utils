@@ -59,6 +59,32 @@ trait StakingMaster with Common {
         self.receiveTransferNotification(msg);
     }
 
+    receive(msg: StakeToncoin) {
+        self.receiveStakeToncoin(msg);
+    }
+
+    virtual fun receiveStakeToncoin(msg: StakeToncoin) {
+        let ctx = context();
+        nativeThrowUnless(codeInflowValueNotSufficient,
+            ctx.value >= msg.amount + msg.forwardTonAmount + self.staticTax);
+        nativeThrowUnless(codeStakeAmountMustBePositive, msg.amount > 0);
+
+        self.lockedValue += msg.amount;
+
+        let userStakeWallet = self.getUserWallet(sender());
+
+        self.reserveValue(msg.amount);
+        send(SendParameters{
+            to: contractAddress(userStakeWallet),
+            bounce: false,
+            value: 0,
+            mode: SendRemainingBalance,
+            body: msg.toCell(),
+            data: userStakeWallet.data,
+            code: userStakeWallet.code,
+        });
+    }
+
     virtual fun receiveRelease(msg: StakeRelease) {
         let ctx = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
@@ -81,7 +107,10 @@ trait StakingMaster with Common {
         nativeThrowUnless(codeForwardPayloadInvalid, msg.forwardPayload != null);
 
         let stakeMsg = StakeJetton.fromCell(msg.forwardPayload!!);
-        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= stakeMsg.tonAmount + stakeMsg.forwardTonAmount + self.staticTax);
+        nativeThrowUnless(codeInflowValueNotSufficient,
+            ctx.value >= stakeMsg.tonAmount + stakeMsg.forwardTonAmount + self.staticTax);
+        nativeThrowUnless(codeStakeAmountMustBePositive, stakeMsg.tonAmount > 0);
+        nativeThrowUnless(codeStakeAmountMustBePositive, stakeMsg.jettonAmount > 0);
 
         let userStakeWallet = self.getUserWallet(msg.sender);
         stakeMsg.queryId = msg.queryId;
@@ -96,9 +125,10 @@ trait StakingMaster with Common {
             value: 0,
             mode: SendRemainingBalance,
             body: stakeMsg.toCell(),
+            data: userStakeWallet.data,
+            code: userStakeWallet.code,
         });
     }
-
 
     // getWalletContract creates a new wallet contract for the specified owner
     virtual fun getUserWallet(owner: Address): StateInit {
@@ -279,9 +309,9 @@ trait StakingWallet with Common {
 
     virtual fun receiveStakeToncoin(msg: StakeToncoin) {
         let ctx = context();
-        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= msg.amount + msg.forwardTonAmount + self.staticTax);
-
-        self.lockedValue += msg.amount;
+        nativeThrowUnless(codeUnauthorized, ctx.sender == self.master);
+        nativeThrowUnless(codeInflowValueNotSufficient,
+            ctx.value >= msg.forwardTonAmount + self.staticTax);
 
         if (msg.forwardTonAmount > 0) {
             send(SendParameters{
