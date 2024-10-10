@@ -1,12 +1,13 @@
 import { NetworkProvider } from '@ton/blueprint';
-import { beginCell, comment, fromNano, toNano } from '@ton/core';
+import { beginCell, comment, Dictionary, fromNano, toNano } from '@ton/core';
 
 import { JettonMasterTemplate } from '../build/Sample/tact_JettonMasterTemplate';
 import { JettonWalletTemplate } from '../build/Sample/tact_JettonWalletTemplate';
 import { Sample } from '../build/Sample/tact_Sample';
-import { StakingMasterTemplate, storeStakeJetton } from '../build/Staking/tact_StakingMasterTemplate';
+import { StakeReleaseJettonInfo, StakingMasterTemplate, storeStakeJetton } from '../build/Staking/tact_StakingMasterTemplate';
 import { StakingWalletTemplate } from '../build/Staking/tact_StakingWalletTemplate';
 import { getMasterContract, randomInt } from './utils';
+
 
 export async function run(provider: NetworkProvider): Promise<void> {
     console.log("-------------------------------------")
@@ -126,7 +127,7 @@ export async function run(provider: NetworkProvider): Promise<void> {
             amount: toNano("1"),
             destination: stakingMasterContract.address,
             responseDestination: stakingMasterContract.address,
-            forwardTonAmount: toNano("0.1"),
+            forwardTonAmount: toNano("0.2"),
             forwardPayload: beginCell()
                 .store(storeStakeJetton({
                     $$type: "StakeJetton",
@@ -147,7 +148,62 @@ export async function run(provider: NetworkProvider): Promise<void> {
     console.log("-------------------------------------")
     console.log("show staking info")
     console.log("-------------------------------------")
-    const stakedInfo = await stakingWalletContract.getStakedInfo();
+    let stakedInfo = await stakingWalletContract.getStakedInfo();
+    console.log(`staked TON coin: ${fromNano(stakedInfo.stakedTonAmount)}`);
+
+    for (const jettonWalletAddr of stakedInfo.stakedJettons.keys()) {
+        const jettonWallet = provider.open(
+            JettonWalletTemplate.fromAddress(jettonWalletAddr)
+        );
+        const walletData = await jettonWallet.getGetWalletData();
+
+        console.log(`user staked jetton: ${fromNano(stakedInfo.stakedJettons.get(jettonWalletAddr)!!.jettonAmount)}`);
+        console.log(`total jetton: ${fromNano(walletData.balance)}`);
+    }
+
+    console.log("-------------------------------------")
+    console.log("release staking")
+    console.log("-------------------------------------")
+    let releasejettons = Dictionary.empty<bigint, StakeReleaseJettonInfo>();
+    releasejettons.set(
+        BigInt("0"),
+        {
+            $$type: "StakeReleaseJettonInfo",
+            tonAmount: toNano("0.1"),
+            jettonAmount: toNano("1"),
+            jettonWallet: stakingJettonWalletContract.address,
+            destination: provider.sender().address!!,
+            customPayload: null,
+            forwardTonAmount: toNano("0.1"),
+            forwardPayload: comment("forward_payload"),
+        }
+    )
+
+    await stakingWalletContract.send(
+        provider.sender(),
+        {
+            value: toNano("1"),
+            bounce: false,
+        },
+        {
+            $$type: "StakeRelease",
+            queryId: BigInt(randomInt()),
+            amount: toNano("0.02"),
+            jettons: releasejettons,
+            jettonsIdx: BigInt("1"),
+            owner: provider.sender().address!!,
+            destination: provider.sender().address!!,
+            responseDestination: provider.sender().address!!,
+            customPayload: comment("custom_payload"),
+            forwardTonAmount: toNano("0.1"),
+            forwardPayload: comment("forward_payload"),
+        }
+    );
+
+    console.log("-------------------------------------")
+    console.log("show staking info")
+    console.log("-------------------------------------")
+    stakedInfo = await stakingWalletContract.getStakedInfo();
     console.log(`staked TON coin: ${fromNano(stakedInfo.stakedTonAmount)}`);
 
     for (const jettonWalletAddr of stakedInfo.stakedJettons.keys()) {

@@ -87,16 +87,79 @@ trait StakingMaster with Common {
 
     virtual fun receiveRelease(msg: StakeRelease) {
         let ctx = context();
-        nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
 
-        let wallet = self.getUserWallet(msg.owner);
+        // check sender
+        nativeThrowUnless(codeUnauthorized,
+            ctx.sender == contractAddress(self.getUserWallet(msg.owner)));
 
+        let totalCost: Int = msg.amount;
+
+        // release ton coins
+        if (msg.amount > 0) {
+            nativeThrowUnless(codeBalanceNotSufficient, self.lockedValue >= msg.amount);
+            send(SendParameters{
+                to: msg.destination,
+                bounce: false,
+                value: msg.amount,
+                body: msg.customPayload,
+            });
+        }
+
+        // release jettons
+        let i: Int = 0;
+        while (i < msg.jettonsIdx) {
+            let jetton = msg.jettons.get(i)!!;
+            totalCost += jetton.tonAmount;
+
+            send(SendParameters{
+                to: jetton.destination,
+                bounce: false,
+                value: jetton.tonAmount,
+                body: TokenTransfer{
+                    queryId: msg.queryId,
+                    amount: jetton.jettonAmount,
+                    destination: jetton.destination,
+                    responseDestination: msg.responseDestination,
+                    customPayload: jetton.customPayload,
+                    forwardTonAmount: jetton.forwardTonAmount,
+                    forwardPayload: jetton.forwardPayload,
+                }.toCell(),
+            });
+
+            i += 1;
+        }
+
+        // check cost
+        totalCost += msg.forwardTonAmount;
+        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= totalCost + self.staticTax);
+
+        // forward
+        if (msg.forwardTonAmount > 0) {
+            send(SendParameters{
+                to: msg.responseDestination,
+                bounce: false,
+                value: msg.forwardTonAmount,
+                body: StakeReleaseNotification{
+                    queryId: msg.queryId,
+                    amount: msg.amount,
+                    jettons: msg.jettons,
+                    jettonsIdx: msg.jettonsIdx,
+                    destination: msg.destination,
+                    forwardPayload: msg.forwardPayload,
+                }.toCell(),
+            });
+        }
+
+        // refund
+        self.reserveValue(-msg.amount);
         send(SendParameters{
-            to: contractAddress(wallet),
+            to: msg.responseDestination,
             bounce: false,
             value: 0,
-            mode: SendRemainingValue,
-            body: msg.toCell(),
+            mode: SendRemainingBalance,
+            body: Excesses{
+                queryId: msg.queryId,
+            }.toCell(),
         });
     }
 
@@ -219,18 +282,12 @@ trait StakingWallet with Common {
 
     virtual fun receiveRelease(msg: StakeRelease) {
         let ctx = context();
-        nativeThrowUnless(codeUnauthorized, ctx.sender == self.master);
+        nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
 
         // release ton coins
         if (msg.amount > 0) {
             nativeThrowUnless(codeBalanceNotSufficient, self.lockedValue >= msg.amount);
             self.lockedValue -= msg.amount;
-            send(SendParameters{
-                to: msg.destination,
-                bounce: false,
-                value: msg.amount,
-                body: msg.customPayload,
-            });
         }
 
         // release jettons
@@ -251,54 +308,21 @@ trait StakingWallet with Common {
                 }
             );
 
-            send(SendParameters{
-                to: jetton.jettonWallet,
-                bounce: false,
-                value: jetton.tonAmount,
-                body: TokenTransfer{
-                    queryId: msg.queryId,
-                    amount: jetton.jettonAmount,
-                    destination: jetton.destination,
-                    responseDestination: msg.responseDestination,
-                    customPayload: jetton.customPayload,
-                    forwardTonAmount: jetton.forwardTonAmount,
-                    forwardPayload: jetton.forwardPayload,
-                }.toCell(),
-            });
-
             i += 1;
         }
 
-        if (msg.forwardTonAmount > 0) {
-            totalCost += msg.forwardTonAmount;
-            send(SendParameters{
-                to: msg.responseDestination,
-                bounce: false,
-                value: msg.forwardTonAmount,
-                body: StakeReleaseNotification{
-                    queryId: msg.queryId,
-                    amount: msg.amount,
-                    jettons: msg.jettons,
-                    jettonsIdx: msg.jettonsIdx,
-                    destination: msg.destination,
-                    forwardPayload: msg.forwardPayload,
-                }.toCell(),
-            });
-        }
-
         // check cost
+        totalCost += msg.forwardTonAmount;
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= totalCost + self.staticTax);
 
-        // refund
-        self.reserveValue(-msg.amount);
+        // told staking master to transfer released jetton
+        self.reserveValue(0);
         send(SendParameters{
-            to: msg.responseDestination,
+            to: self.master,
             bounce: false,
             value: 0,
             mode: SendRemainingBalance,
-            body: Excesses{
-                queryId: msg.queryId,
-            }.toCell(),
+            body: msg.toCell(),
         });
     }
 

@@ -31,6 +31,9 @@ message(0xe656dfa2) StakeReleaseNotification {
     forwardPayload: Cell?;
 }
 
+// put StakeJetton as the forwardPayload in TokenTransfer.
+// and the forwardTonAmount of TokenTransfer should be greater than
+// the sum of the tonAmount and forwardTonAmount of StakeJetton.
 message(0x6ab57824) StakeJetton {
     queryId: Int? as uint64;
     tonAmount: Int as coins;

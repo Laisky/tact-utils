@@ -13,9 +13,9 @@ describe('Staking', () => {
 
     let stakeMasterContract: SandboxContract<StakingMasterTemplate>;
     let jettonMasterContract: SandboxContract<JettonMasterTemplate>;
+    let stakeJettonWallet: SandboxContract<JettonWalletTemplate>;
     let userStakeWallet: SandboxContract<StakingWalletTemplate>;
     let userJettonWallet: SandboxContract<JettonWalletTemplate>;
-    let userStakeJettonWallet: SandboxContract<JettonWalletTemplate>;
 
     let admin: SandboxContract<TreasuryContract>;
     let user: SandboxContract<TreasuryContract>;
@@ -50,10 +50,10 @@ describe('Staking', () => {
             )
         );
 
-        userStakeJettonWallet = blockchain.openContract(
+        stakeJettonWallet = blockchain.openContract(
             await JettonWalletTemplate.fromInit(
                 jettonMasterContract.address,
-                userStakeWallet.address,
+                stakeMasterContract.address,
             )
         );
 
@@ -69,7 +69,7 @@ describe('Staking', () => {
         console.log(`stakeMasterContract: ${stakeMasterContract.address}`);
         console.log(`jettonMasterContract: ${jettonMasterContract.address}`);
         console.log(`userStakeWallet: ${userStakeWallet.address}`);
-        console.log(`userStakeJettonWallet: ${userStakeJettonWallet.address}`);
+        console.log(`stakeJettonWallet: ${stakeJettonWallet.address}`);
         console.log(`userJettonWallet: ${userJettonWallet.address}`);
     });
 
@@ -126,7 +126,7 @@ describe('Staking', () => {
         const userStakeAddr = await stakeMasterContract.getUserWallet(user.address);
         expect(userStakeAddr.equals(userStakeWallet.address)).toBeTruthy();
 
-        const tx = await userStakeWallet.send(
+        const tx = await stakeMasterContract.send(
             user.getSender(),
             {
                 value: toNano("2"),
@@ -137,7 +137,7 @@ describe('Staking', () => {
                 queryId: BigInt(Math.ceil(Math.random() * 1000000)),
                 amount: toNano("0.5"),
                 responseDestination: user.address,
-                forwardTonAmount: toNano("0.5"),
+                forwardTonAmount: toNano("0.1"),
                 forwardPayload: comment("forward_payload"),
             }
         );
@@ -145,6 +145,12 @@ describe('Staking', () => {
 
         expect(tx.transactions).toHaveTransaction({
             from: user.address,
+            to: stakeMasterContract.address,
+            success: true,
+            op: 0x7ac4404c,  // StakeToncoin
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: stakeMasterContract.address,
             to: userStakeWallet.address,
             success: true,
             op: 0x7ac4404c,  // StakeToncoin
@@ -177,15 +183,17 @@ describe('Staking', () => {
                 $$type: "TokenTransfer",
                 queryId: BigInt(Math.ceil(Math.random() * 1000000)),
                 amount: toNano("1"),
-                destination: userStakeWallet.address,
-                responseDestination: userStakeWallet.address,
-                forwardTonAmount: toNano("0.5"),
+                destination: stakeMasterContract.address,
+                responseDestination: stakeMasterContract.address,
+                forwardTonAmount: toNano("0.2"),
                 forwardPayload: beginCell()
                     .store(storeStakeJetton({
                         $$type: "StakeJetton",
-                        tonAmount: toNano("0"),
-                        jettonAmount: toNano("1"),
-                        jettonWallet: userStakeJettonWallet.address,
+                        queryId: null,
+                        jettonWallet: null,
+                        sender: null,
+                        jettonAmount: null,
+                        tonAmount: toNano("0.5"),
                         responseDestination: user.address,
                         forwardTonAmount: toNano("0.1"),
                         forwardPayload: comment("forward_payload"),
@@ -205,21 +213,27 @@ describe('Staking', () => {
         });
         expect(tx.transactions).toHaveTransaction({
             from: userJettonWallet.address,
-            to: userStakeJettonWallet.address,
+            to: stakeJettonWallet.address,
             success: true,
             op: 0x178d4519,  // TokenTransferInternal
         });
         expect(tx.transactions).toHaveTransaction({
-            from: userStakeJettonWallet.address,
+            from: stakeJettonWallet.address,
             to: userStakeWallet.address,
             success: true,
             op: 0xd53276db,  // Excesses
         });
         expect(tx.transactions).toHaveTransaction({
-            from: userStakeJettonWallet.address,
-            to: userStakeWallet.address,
+            from: stakeJettonWallet.address,
+            to: stakeMasterContract.address,
             success: true,
             op: 0x7362d09c,  // TransferNotification
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: stakeMasterContract.address,
+            to: stakeJettonWallet.address,
+            success: true,
+            op: 0x6ab57824,  // StakeJetton
         });
         expect(tx.transactions).toHaveTransaction({
             from: userStakeWallet.address,
@@ -235,7 +249,8 @@ describe('Staking', () => {
         });
 
         const userStakedInfo = await userStakeWallet.getStakedInfo();
-        expect(userStakedInfo.stakedJettons.get(userStakeJettonWallet.address)!!.jettonAmount).toEqual(toNano("1"));
+        expect(userStakedInfo.stakedTonAmount).toEqual(toNano("1"));
+        expect(userStakedInfo.stakedJettons.get(stakeJettonWallet.address)!!.jettonAmount).toEqual(toNano("1"));
     });
 
     it("release", async () => {
@@ -244,15 +259,15 @@ describe('Staking', () => {
             $$type: "StakeReleaseJettonInfo",
             tonAmount: toNano("0.2"),
             jettonAmount: toNano("1"),
-            jettonWallet: userStakeJettonWallet.address,
+            jettonWallet: stakeJettonWallet.address,
             forwardTonAmount: toNano("0.1"),
             destination: user.address,
             customPayload: null,
             forwardPayload: comment("forward_payload"),
         });
 
-        const tx = await stakeMasterContract.send(
-            admin.getSender(),
+        const tx = await userStakeWallet.send(
+            user.getSender(),
             {
                 value: toNano("2"),
                 bounce: false,
@@ -275,37 +290,37 @@ describe('Staking', () => {
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
-            from: admin.address,
+            from: user.address,
+            to: userStakeWallet.address,
+            success: true,
+            op: 0x51fa3a81,  // StakeRelease
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: userStakeWallet.address,
             to: stakeMasterContract.address,
             success: true,
             op: 0x51fa3a81,  // StakeRelease
         });
         expect(tx.transactions).toHaveTransaction({
             from: stakeMasterContract.address,
-            to: userStakeWallet.address,
-            success: true,
-            op: 0xd07ddc09,  // StakeReleaseInternal
-        });
-        expect(tx.transactions).toHaveTransaction({
-            from: userStakeWallet.address,
             to: user.address,
             success: true,
             op: 0xe656dfa2,  // StakeReleaseNotification
         });
         expect(tx.transactions).toHaveTransaction({
-            from: userStakeWallet.address,
-            to: userStakeJettonWallet.address,
+            from: stakeMasterContract.address,
+            to: stakeJettonWallet.address,
             success: true,
             op: 0xf8a7ea5,  // TokenTransfer
         });
         expect(tx.transactions).toHaveTransaction({
-            from: userStakeJettonWallet.address,
+            from: stakeJettonWallet.address,
             to: userJettonWallet.address,
             success: true,
             op: 0x178d4519,  // TokenTransferInternal
         });
         expect(tx.transactions).toHaveTransaction({
-            from: userJettonWallet.address,
+            from: stakeMasterContract.address,
             to: user.address,
             success: true,
             op: 0x7362d09c,  // TransferNotification
@@ -317,7 +332,7 @@ describe('Staking', () => {
             op: 0xd53276db,  // Excesses
         });
         expect(tx.transactions).toHaveTransaction({
-            from: userJettonWallet.address,
+            from: stakeMasterContract.address,
             to: user.address,
             success: true,
             op: 0xd53276db,  // Excesses
@@ -325,6 +340,6 @@ describe('Staking', () => {
 
         const userStakedInfo = await userStakeWallet.getStakedInfo();
         expect(userStakedInfo.stakedTonAmount).toEqual(toNano("0"));
-        expect(userStakedInfo.stakedJettons.get(userStakeJettonWallet.address)!!.jettonAmount).toEqual(toNano("0"));
+        expect(userStakedInfo.stakedJettons.get(stakeJettonWallet.address)!!.jettonAmount).toEqual(toNano("0"));
     });
 });
