@@ -1,5 +1,5 @@
 import { NetworkProvider } from '@ton/blueprint';
-import { beginCell, comment, toNano } from '@ton/core';
+import { beginCell, comment, fromNano, toNano } from '@ton/core';
 
 import { JettonMasterTemplate } from '../build/Sample/tact_JettonMasterTemplate';
 import { JettonWalletTemplate } from '../build/Sample/tact_JettonWalletTemplate';
@@ -13,7 +13,7 @@ export async function run(provider: NetworkProvider): Promise<void> {
     console.log('>> mint jetton to yourself');
     console.log("-------------------------------------")
     const sampleMasterContract = await getMasterContract(provider);
-    const sampleContract = await provider.open(
+    const sampleContract = provider.open(
         await Sample.fromInit(
             sampleMasterContract.address,
             provider.sender().address!!,
@@ -40,7 +40,7 @@ export async function run(provider: NetworkProvider): Promise<void> {
     console.log("-------------------------------------")
     console.log('>> wait jetton wallet deployed');
     console.log("-------------------------------------")
-    const jettonMasterContract = await provider.open(
+    const jettonMasterContract = provider.open(
         await JettonMasterTemplate.fromInit(
             sampleContract.address,
             {
@@ -50,7 +50,7 @@ export async function run(provider: NetworkProvider): Promise<void> {
             }
         )
     );
-    const jettonWalletContract = await provider.open(
+    const jettonWalletContract = provider.open(
         await JettonWalletTemplate.fromInit(
             jettonMasterContract.address,
             provider.sender().address!!,
@@ -61,18 +61,18 @@ export async function run(provider: NetworkProvider): Promise<void> {
     console.log("-------------------------------------")
     console.log('>> prepare staking master contract');
     console.log("-------------------------------------")
-    const stakingMasterContract = await provider.open(
+    const stakingMasterContract = provider.open(
         await StakingMasterTemplate.fromInit(
             provider.sender().address!!,
         )
     );
-    const stakingWalletContract = await provider.open(
+    const stakingWalletContract = provider.open(
         await StakingWalletTemplate.fromInit(
             stakingMasterContract.address,
             provider.sender().address!!,
         )
     );
-    const stakingJettonWalletContract = await provider.open(
+    const stakingJettonWalletContract = provider.open(
         await JettonWalletTemplate.fromInit(
             jettonMasterContract.address,
             stakingMasterContract.address,
@@ -126,7 +126,7 @@ export async function run(provider: NetworkProvider): Promise<void> {
             amount: toNano("1"),
             destination: stakingMasterContract.address,
             responseDestination: stakingMasterContract.address,
-            forwardTonAmount: toNano("0.2"),
+            forwardTonAmount: toNano("0.1"),
             forwardPayload: beginCell()
                 .store(storeStakeJetton({
                     $$type: "StakeJetton",
@@ -143,4 +143,20 @@ export async function run(provider: NetworkProvider): Promise<void> {
             customPayload: null,
         }
     );
+
+    console.log("-------------------------------------")
+    console.log("show staking info")
+    console.log("-------------------------------------")
+    const stakedInfo = await stakingWalletContract.getStakedInfo();
+    console.log(`staked TON coin: ${fromNano(stakedInfo.stakedTonAmount)}`);
+
+    for (const jettonWalletAddr of stakedInfo.stakedJettons.keys()) {
+        const jettonWallet = provider.open(
+            JettonWalletTemplate.fromAddress(jettonWalletAddr)
+        );
+        const walletData = await jettonWallet.getGetWalletData();
+
+        console.log(`user staked jetton: ${fromNano(stakedInfo.stakedJettons.get(jettonWalletAddr)!!.jettonAmount)}`);
+        console.log(`total jetton: ${fromNano(walletData.balance)}`);
+    }
 }
