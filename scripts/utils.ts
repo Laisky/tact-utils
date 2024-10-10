@@ -1,5 +1,5 @@
-import { OpenedContract } from '@ton/core';
 import { NetworkProvider } from '@ton/blueprint';
+import { OpenedContract } from '@ton/core';
 import { SampleMaster } from "../build/Sample/tact_SampleMaster";
 
 

@@ -1,12 +1,12 @@
-import { toNano, Address, comment, contractAddress, beginCell } from '@ton/core';
 import { NetworkProvider } from '@ton/blueprint';
+import { beginCell, comment, toNano } from '@ton/core';
 
-import { getMasterContract, randomInt } from './utils';
 import { JettonMasterTemplate } from '../build/Sample/tact_JettonMasterTemplate';
 import { JettonWalletTemplate } from '../build/Sample/tact_JettonWalletTemplate';
-import { loadTep64TokenData, Sample } from '../build/Sample/tact_Sample';
-import { StakeReleaseJettonInfo, StakingMasterTemplate, storeStakeJetton } from '../build/Staking/tact_StakingMasterTemplate';
+import { Sample } from '../build/Sample/tact_Sample';
+import { StakingMasterTemplate, storeStakeJetton } from '../build/Staking/tact_StakingMasterTemplate';
 import { StakingWalletTemplate } from '../build/Staking/tact_StakingWalletTemplate';
+import { getMasterContract, randomInt } from './utils';
 
 export async function run(provider: NetworkProvider): Promise<void> {
     console.log("-------------------------------------")

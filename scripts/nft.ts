@@ -1,13 +1,13 @@
-import { toNano, Address } from '@ton/core';
 import { NetworkProvider } from '@ton/blueprint';
+import { Address, toNano } from '@ton/core';
 
-import { getMasterContract } from './utils';
 import {
     loadTep64TokenData,
     NftCollectionSample
 } from '../build/Sample/tact_NftCollectionSample';
-import { Sample } from '../build/Sample/tact_Sample';
 import { NftItemTemplate } from '../build/Sample/tact_NftItemTemplate';
+import { Sample } from '../build/Sample/tact_Sample';
+import { getMasterContract } from './utils';
 
 
 export async function run(provider: NetworkProvider): Promise<void> {
