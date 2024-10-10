@@ -21,7 +21,7 @@ import "./messages.tact";
 // This is your custom jetton's master contract.
 contract JettonMasterTemplate with JettonMaster {
     owner: Address;
-    staticTaxFee: Int as coins = ton("0.001");
+    staticTax: Int as coins = ton("0.001");
     lockedValue: Int as coins = 0;
 
     // Cell to store arbitrary data related to the jetton
@@ -50,8 +50,8 @@ contract JettonWalletTemplate with JettonWallet {
     // unlike the centralized ledger of Ethereum Tokens,
     // TON users keep track of the number of tokens they own in their own wallets.
     balance: Int;
-    // staticTaxFee is the fee that will be charged for each transaction.
-    staticTaxFee: Int as coins = ton("0.001");
+    // staticTax is the fee that will be charged for each transaction.
+    staticTax: Int as coins = ton("0.001");
     lockedValue: Int as coins = 0;
 
     // The parameters of the init function should not be too complex,
@@ -72,7 +72,7 @@ contract JettonWalletTemplate with JettonWallet {
 @interface("org.ton.jetton.master")
 trait JettonMaster with Common {
     owner: Address;
-    staticTaxFee: Int;
+    staticTax: Int;
     lockedValue: Int;
 
     content: Cell;
@@ -217,8 +217,8 @@ trait JettonWallet with Common {
     // unlike the centralized ledger of Ethereum Tokens,
     // TON users keep track of the number of tokens they own in their own wallets.
     balance: Int;
-    // staticTaxFee is the fee that will be charged for each transaction.
-    staticTaxFee: Int;
+    // staticTax is the fee that will be charged for each transaction.
+    staticTax: Int;
     lockedValue: Int;
 
     // this is a TEP-074 standard receiver method,

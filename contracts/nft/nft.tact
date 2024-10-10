@@ -16,7 +16,7 @@ import "../common/traits.tact";
 
 contract NftCollectionTemplate with NftCollection {
     owner: Address;
-    staticTaxFee: Int as coins = ton("0.001");
+    staticTax: Int as coins = ton("0.001");
     lockedValue: Int as coins = ton("0");
 
     nextItemIndex: Int as uint256 = 0;
@@ -52,7 +52,7 @@ contract NftCollectionTemplate with NftCollection {
 
 contract NftItemTemplate with NftItem {
     owner: Address;
-    staticTaxFee: Int as coins = ton("0.001");
+    staticTax: Int as coins = ton("0.001");
     lockedValue: Int as coins = ton("0");
 
     initialized: Bool = false;
@@ -79,7 +79,7 @@ contract NftItemTemplate with NftItem {
 
 trait NftCollection with Common {
     owner: Address;
-    staticTaxFee: Int;
+    staticTax: Int;
     lockedValue: Int;
 
     nextItemIndex: Int;
@@ -166,7 +166,7 @@ trait NftCollection with Common {
     virtual fun receiveMintNFT(msg: MintNFT) {
         let ctx: Context = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
-        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= self.staticTaxFee + msg.forwardAmount);
+        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= self.staticTax + msg.forwardAmount);
 
         self.mint(msg);
     }
@@ -254,7 +254,7 @@ trait NftCollection with Common {
 
 trait NftItem with Common {
     owner: Address;
-    staticTaxFee: Int;
+    staticTax: Int;
     lockedValue: Int;
 
     initialized: Bool;

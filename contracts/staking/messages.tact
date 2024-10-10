@@ -31,13 +31,15 @@ message(0xe656dfa2) StakeReleaseNotification {
     forwardPayload: Cell?;
 }
 
-struct StakeJetton {
+message StakeJetton {
+    queryId: Int? as uint64;
     tonAmount: Int as coins;
     jettonAmount: Int as coins;
-    // Jetton wallet address of the staking wallet contract.
-    // you should first transfer the staked amount of jetton
-    // to the staking wallet contract, then call the staking.
-    jettonWallet: Address;
+    // Jetton wallet address of the staking master contract.
+    // the value will set by the staking master contract.
+    jettonWallet: Address?;
+    // the address of the user who transferred the Jetton.
+    sender: Address?;
     // address to send the response to
     responseDestination: Address;
     // amount of TON to forward
@@ -54,27 +56,8 @@ message(0x51fa3a81) StakeRelease {
     // the amount of jettons to release
     jettons: map<Int as uint64, StakeReleaseJettonInfo>;
     jettonsIdx: Int as uint64;
-    // the address to release the ton coins to
+    // the address of the staked asset owner that will be released
     owner: Address;
-    // the address to receive the released ton coins
-    destination: Address;
-    // the address to send the excesses to
-    responseDestination: Address;
-    // the custom payload to be sent with the released ton coins
-    customPayload: Cell?;
-    // amount of TON to forward
-    forwardTonAmount: Int as coins;
-    // payload to forward
-    forwardPayload: Cell?;
-}
-
-message(0xd07ddc09) StakeReleaseInternal {
-    queryId: Int as uint64;
-    // the amount of TON coins to release
-    amount: Int as coins;
-    // the amount of jettons to release
-    jettons: map<Int as uint64, StakeReleaseJettonInfo>;
-    jettonsIdx: Int as uint64;
     // the address to receive the released ton coins
     destination: Address;
     // the address to send the excesses to

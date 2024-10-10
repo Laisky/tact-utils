@@ -6,7 +6,6 @@ import { JettonMasterTemplate } from '../build/Sample/tact_JettonMasterTemplate'
 import { JettonWalletTemplate } from '../build/Sample/tact_JettonWalletTemplate';
 import { StakeReleaseJettonInfo, StakingMasterTemplate, storeStakeJetton } from '../build/Staking/tact_StakingMasterTemplate';
 import { StakingWalletTemplate } from '../build/Staking/tact_StakingWalletTemplate';
-import { tonDeepLink } from '@ton/blueprint';
 
 describe('Staking', () => {
 
