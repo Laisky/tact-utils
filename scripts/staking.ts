@@ -51,68 +51,68 @@ export async function run(provider: NetworkProvider): Promise<void> {
         )
     );
 
-    // console.log("-------------------------------------")
-    // console.log('>> mint jetton to yourself');
-    // console.log("-------------------------------------")
-    // console.log(`mint jetton to ${provider.sender().address!!.toString()}`);
-    // const amount = randomInt();
+    console.log("-------------------------------------")
+    console.log('>> mint jetton to yourself');
+    console.log("-------------------------------------")
+    console.log(`mint jetton to ${provider.sender().address!!.toString()}`);
+    const amount = randomInt();
 
-    // await sampleMasterContract.send(
-    //     provider.sender(),
-    //     {
-    //         value: toNano("1"),
-    //         bounce: false,
-    //     },
-    //     {
-    //         $$type: "MintJettonSample",
-    //         queryId: BigInt(randomInt()),
-    //         amount: toNano(amount),
-    //         receiver: provider.sender().address!!,
-    //     }
-    // );
+    await sampleMasterContract.send(
+        provider.sender(),
+        {
+            value: toNano("1"),
+            bounce: false,
+        },
+        {
+            $$type: "MintJettonSample",
+            queryId: BigInt(randomInt()),
+            amount: toNano(amount),
+            receiver: provider.sender().address!!,
+        }
+    );
 
-    // console.log("-------------------------------------")
-    // console.log('>> wait jetton wallet deployed');
-    // console.log("-------------------------------------")
-    // await provider.waitForDeploy(jettonWalletContract.address, 50);
+    console.log("-------------------------------------")
+    console.log('>> wait jetton wallet deployed');
+    console.log("-------------------------------------")
+    await provider.waitForDeploy(jettonWalletContract.address, 50);
 
-    // console.log("-------------------------------------")
-    // console.log('>> prepare staking contracts');
-    // console.log("-------------------------------------")
+    console.log("-------------------------------------")
+    console.log('>> prepare staking contracts');
+    console.log("-------------------------------------")
 
-    // await stakingMasterContract.send(
-    //     provider.sender(),
-    //     {
-    //         value: toNano("1"),
-    //         bounce: false,
-    //     },
-    //     {
-    //         $$type: "StakeDeployUserWallet",
-    //         queryId: BigInt(randomInt()),
-    //         owner: provider.sender().address!!,
-    //         responseDestination: provider.sender().address!!,
-    //     }
-    // );
-    // await provider.waitForDeploy(stakingWalletContract.address, 50);
+    await stakingMasterContract.send(
+        provider.sender(),
+        {
+            value: toNano("1"),
+            bounce: false,
+        },
+        {
+            $$type: "StakeDeployUserWallet",
+            queryId: BigInt(randomInt()),
+            owner: provider.sender().address!!,
+            responseDestination: provider.sender().address!!,
+        }
+    );
+    await provider.waitForDeploy(stakingWalletContract.address, 50);
 
-    // console.log("-------------------------------------")
-    // console.log("staking ton coin...")
-    // console.log("-------------------------------------")
-    // await stakingMasterContract.send(
-    //     provider.sender(),
-    //     {
-    //         value: toNano("1"),
-    //         bounce: false,
-    //     },
-    //     {
-    //         $$type: "StakeToncoin",
-    //         queryId: BigInt(randomInt()),
-    //         amount: toNano("0.01"),
-    //         responseDestination: provider.sender().address!!,
-    //         forwardTonAmount: toNano("0.1"),
-    //         forwardPayload: comment("forward_payload"),
-    //     }
-    // );
+    console.log("-------------------------------------")
+    console.log("staking ton coin...")
+    console.log("-------------------------------------")
+    await stakingMasterContract.send(
+        provider.sender(),
+        {
+            value: toNano("1"),
+            bounce: false,
+        },
+        {
+            $$type: "StakeToncoin",
+            queryId: BigInt(randomInt()),
+            amount: toNano("0.01"),
+            responseDestination: provider.sender().address!!,
+            forwardTonAmount: toNano("0.1"),
+            forwardPayload: comment("forward_payload"),
+        }
+    );
 
     console.log("-------------------------------------")
     console.log("staking jetton...")
@@ -143,78 +143,78 @@ export async function run(provider: NetworkProvider): Promise<void> {
         }
     );
 
-    // console.log("-------------------------------------")
-    // console.log("show staking info")
-    // console.log("-------------------------------------")
-    // {
-    //     const stakedInfo = await stakingWalletContract.getStakedInfo();
-    //     console.log(`staked TON coin: ${fromNano(stakedInfo.stakedTonAmount)}`);
+    console.log("-------------------------------------")
+    console.log("show staking info")
+    console.log("-------------------------------------")
+    {
+        const stakedInfo = await stakingWalletContract.getStakedInfo();
+        console.log(`staked TON coin: ${fromNano(stakedInfo.stakedTonAmount)}`);
 
-    //     for (const jettonWalletAddr of stakedInfo.stakedJettons.keys()) {
-    //         const jettonWallet = provider.open(
-    //             JettonWalletTemplate.fromAddress(jettonWalletAddr)
-    //         );
-    //         const walletData = await jettonWallet.getGetWalletData();
+        for (const jettonWalletAddr of stakedInfo.stakedJettons.keys()) {
+            const jettonWallet = provider.open(
+                JettonWalletTemplate.fromAddress(jettonWalletAddr)
+            );
+            const walletData = await jettonWallet.getGetWalletData();
 
-    //         console.log(`user staked jetton: ${fromNano(stakedInfo.stakedJettons.get(jettonWalletAddr)!!.jettonAmount)}`);
-    //         console.log(`total jetton: ${fromNano(walletData.balance)}`);
-    //     }
-    // }
+            console.log(`user staked jetton: ${fromNano(stakedInfo.stakedJettons.get(jettonWalletAddr)!!.jettonAmount)}`);
+            console.log(`total jetton: ${fromNano(walletData.balance)}`);
+        }
+    }
 
-    // console.log("-------------------------------------")
-    // console.log("release staking")
-    // console.log("-------------------------------------")
-    // let releasejettons = Dictionary.empty<bigint, StakeReleaseJettonInfo>();
-    // releasejettons.set(
-    //     BigInt("0"),
-    //     {
-    //         $$type: "StakeReleaseJettonInfo",
-    //         tonAmount: toNano("0.2"),
-    //         jettonAmount: toNano("0.01"),
-    //         jettonWallet: stakingJettonWalletContract.address,
-    //         destination: provider.sender().address!!,
-    //         customPayload: null,
-    //         forwardTonAmount: toNano("0.1"),
-    //         forwardPayload: comment("forward_payload"),
-    //     }
-    // )
+    console.log("-------------------------------------")
+    console.log("release staking")
+    console.log("-------------------------------------")
+    let releasejettons = Dictionary.empty<bigint, StakeReleaseJettonInfo>();
+    releasejettons.set(
+        BigInt("0"),
+        {
+            $$type: "StakeReleaseJettonInfo",
+            tonAmount: toNano("0.2"),
+            jettonAmount: toNano("0.01"),
+            jettonWallet: stakingJettonWalletContract.address,
+            destination: provider.sender().address!!,
+            customPayload: null,
+            forwardTonAmount: toNano("0.1"),
+            forwardPayload: comment("forward_payload"),
+        }
+    )
 
-    // await stakingWalletContract.send(
-    //     provider.sender(),
-    //     {
-    //         value: toNano("1"),
-    //         bounce: false,
-    //     },
-    //     {
-    //         $$type: "StakeRelease",
-    //         queryId: BigInt(randomInt()),
-    //         amount: toNano("0.001"),
-    //         jettons: releasejettons,
-    //         jettonsIdx: BigInt("1"),
-    //         owner: provider.sender().address!!,
-    //         destination: provider.sender().address!!,
-    //         responseDestination: provider.sender().address!!,
-    //         customPayload: comment("custom_payload"),
-    //         forwardTonAmount: toNano("0.1"),
-    //         forwardPayload: comment("forward_payload"),
-    //     }
-    // );
+    await stakingWalletContract.send(
+        provider.sender(),
+        {
+            value: toNano("1"),
+            bounce: false,
+        },
+        {
+            $$type: "StakeRelease",
+            queryId: BigInt(randomInt()),
+            amount: toNano("0.001"),
+            jettons: releasejettons,
+            jettonsIdx: BigInt("1"),
+            owner: provider.sender().address!!,
+            destination: provider.sender().address!!,
+            responseDestination: provider.sender().address!!,
+            customPayload: comment("custom_payload"),
+            forwardTonAmount: toNano("0.1"),
+            forwardPayload: comment("forward_payload"),
+        }
+    );
 
-    // console.log("-------------------------------------")
-    // console.log("show staking info")
-    // console.log("-------------------------------------")
-    // {
-    //     const stakedInfo = await stakingWalletContract.getStakedInfo();
-    //     console.log(`staked TON coin: ${fromNano(stakedInfo.stakedTonAmount)}`);
+    console.log("-------------------------------------")
+    console.log("show staking info")
+    console.log("-------------------------------------")
+    {
+        const stakedInfo = await stakingWalletContract.getStakedInfo();
+        console.log(`staked TON coin: ${fromNano(stakedInfo.stakedTonAmount)}`);
 
-    //     for (const jettonWalletAddr of stakedInfo.stakedJettons.keys()) {
-    //         const jettonWallet = provider.open(
-    //             JettonWalletTemplate.fromAddress(jettonWalletAddr)
-    //         );
-    //         const walletData = await jettonWallet.getGetWalletData();
+        for (const jettonWalletAddr of stakedInfo.stakedJettons.keys()) {
+            const jettonWallet = provider.open(
+                JettonWalletTemplate.fromAddress(jettonWalletAddr)
+            );
+            const walletData = await jettonWallet.getGetWalletData();
 
-    //         console.log(`user staked jetton: ${fromNano(stakedInfo.stakedJettons.get(jettonWalletAddr)!!.jettonAmount)}`);
-    //         console.log(`total jetton: ${fromNano(walletData.balance)}`);
-    //     }
-    // }
+            console.log(`user staked jetton: ${fromNano(stakedInfo.stakedJettons.get(jettonWalletAddr)!!.jettonAmount)}`);
+            console.log(`total jetton: ${fromNano(walletData.balance)}`);
+        }
+    }
 }

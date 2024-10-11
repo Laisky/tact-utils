@@ -1,6 +1,7 @@
 # Staking Contract Template for TON Tact
 
 - [Staking Contract Template for TON Tact](#staking-contract-template-for-ton-tact)
+  - [Scripts](#scripts)
   - [Flows](#flows)
     - [Stake TON coins](#stake-ton-coins)
     - [Stake Jettons and TON coins](#stake-jettons-and-ton-coins)
@@ -10,10 +11,13 @@
       - [Release TON coins](#release-ton-coins)
       - [Release Jettons](#release-jettons)
 
-
 Users can stake TON coins along with any Jettons. The primary entity is the Staking Master Contract, and each user will have their individual Staking Wallet Contract. Users have the flexibility to stake and redeem their assets at any time.
 
 **This is an experimental contract template! 🚀 PRs are welcome! 💻✨**
+
+## Scripts
+
+[../scripts/staking.ts](https://github.com/Laisky/tact-utils/blob/main/scripts/staking.ts)
 
 ## Flows
 
@@ -101,8 +105,6 @@ sequenceDiagram
 > ![](https://s3.laisky.com/uploads/2024/10/stake-release.png)
 >
 > <https://testnet.tonviewer.com/transaction/8f7d63c31bccef3e05f3f77a74ccc931df24d8b79d24b7015e043f796d4cfd6e>
-
-
 
 #### Release TON coins
 
