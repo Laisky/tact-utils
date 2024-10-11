@@ -1,4 +1,6 @@
-Jetton staking for TON protocol.
+Users can stake TON coins along with any Jettons. The primary entity is the Staking Master Contract, and each user will have their individual Staking Wallet Contract. Users have the flexibility to stake and redeem their assets at any time.
+
+**This is an experimental contract template! 🚀 PRs are welcome! 💻✨**
 
 ## Design
 
