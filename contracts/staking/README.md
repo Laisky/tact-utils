@@ -17,7 +17,8 @@ Users can stake TON coins along with any Jettons. The primary entity is the Stak
 
 ## Scripts
 
-[../scripts/staking.ts](https://github.com/Laisky/tact-utils/blob/main/scripts/staking.ts)
+- [../scripts/staking.ts](https://github.com/Laisky/tact-utils/blob/main/scripts/staking.ts)
+- [../tests/Staking.spec.ts](https://github.com/Laisky/tact-utils/blob/main/tests/Staking.spec.ts)
 
 ## Flows
 
