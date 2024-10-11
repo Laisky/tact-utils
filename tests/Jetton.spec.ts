@@ -1,5 +1,10 @@
 import { comment, toNano } from '@ton/core';
-import { Blockchain, printTransactionFees, SandboxContract, TreasuryContract } from '@ton/sandbox';
+import {
+    Blockchain,
+    printTransactionFees,
+    SandboxContract,
+    TreasuryContract
+} from '@ton/sandbox';
 import '@ton/test-utils';
 
 import { JettonMasterTemplate, loadTep64TokenData } from '../build/Sample/tact_JettonMasterTemplate';
@@ -68,6 +73,7 @@ describe('Jetton', () => {
             },
         );
         console.log("deploy master contract");
+        console.log("printTransactionFees");
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
@@ -77,8 +83,8 @@ describe('Jetton', () => {
             op: 0x946a98b6,
         });
 
-        const staticTaxFee = await masterContract.getStaticTaxFee()
-        expect(staticTaxFee).toEqual(toNano("0.001"));
+        const staticTax = await masterContract.getStaticTaxFee()
+        expect(staticTax).toEqual(toNano("0.001"));
 
         const jettonData = await masterContract.getGetJettonData();
         expect(jettonData.totalSupply).toEqual(BigInt(0));
@@ -108,6 +114,7 @@ describe('Jetton', () => {
             },
         );
         console.log("mint to owner");
+        console.log("printTransactionFees");
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
@@ -160,6 +167,7 @@ describe('Jetton', () => {
             },
         );
         console.log("transfer to user");
+        console.log("printTransactionFees");
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({

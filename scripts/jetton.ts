@@ -1,10 +1,10 @@
-import { toNano, Address } from '@ton/core';
 import { NetworkProvider } from '@ton/blueprint';
+import { Address, toNano } from '@ton/core';
 
-import { getMasterContract } from './utils';
 import { JettonMasterTemplate } from '../build/Sample/tact_JettonMasterTemplate';
 import { JettonWalletTemplate } from '../build/Sample/tact_JettonWalletTemplate';
 import { loadTep64TokenData, Sample } from '../build/Sample/tact_Sample';
+import { getMasterContract } from './utils';
 
 
 export async function run(provider: NetworkProvider): Promise<void> {

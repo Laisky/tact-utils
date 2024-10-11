@@ -6,23 +6,23 @@ import "./messages.tact";
 
 trait Txable with OwnableTransferable {
     owner: Address;
-    staticTaxFee: Int;
+    staticTax: Int;
 
     receive(msg: SetStaticTaxFee) {
         self.receiveSetStaticTaxFee(msg);
     }
 
-    get fun staticTaxFee(): Int {
-        return self.staticTaxFee;
+    get fun staticTax(): Int {
+        return self.staticTax;
     }
 
     virtual fun receiveSetStaticTaxFee(msg: SetStaticTaxFee) {
         nativeThrowUnless(codeUnauthorized, sender() == self.owner);
 
-        self.staticTaxFee = msg.staticTaxFee;
+        self.staticTax = msg.staticTax;
         let answer = beginString()
             .concat("set static tax fee to ")
-            .concat(msg.staticTaxFee.toString())
+            .concat(msg.staticTax.toString())
             .toString();
         self.reply(answer.asComment());
     }
@@ -49,7 +49,7 @@ trait Nonce {
 // Common is the common trait that will be used by the master contract
 trait Common with Txable, Deployable {
     owner: Address;
-    staticTaxFee: Int;
+    staticTax: Int;
     lockedValue: Int;
 
     // this is a non-standard method, it's used to deposit coins to the wallet.
@@ -66,8 +66,8 @@ trait Common with Txable, Deployable {
     virtual fun receiveWithdraw() {
         let ctx: Context = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
-        nativeThrowUnless(codeBalanceNotSufficient, myBalance() > (self.lockedValue + self.staticTaxFee));
-        nativeReserve(self.lockedValue + self.staticTaxFee, ReserveExact);
+        nativeThrowUnless(codeBalanceNotSufficient, myBalance() > (self.lockedValue + self.staticTax));
+        nativeReserve(self.lockedValue + self.staticTax, ReserveExact);
 
         send(SendParameters{
                 to: self.owner,
@@ -81,12 +81,20 @@ trait Common with Txable, Deployable {
 
     virtual fun reserveValue(delta: Int) {
         let ctx = context();
-        let val = max((myBalance() - ctx.value) + self.staticTaxFee, self.lockedValue + self.staticTaxFee);
+        let val = max((myBalance() - ctx.value) + self.staticTax, self.lockedValue + self.staticTax);
         nativeReserve(val + delta, ReserveExact);
     }
 
     virtual fun receiveExcesses(msg: Excesses) {
-        return;
+        self.reserveValue(0);
+        send(SendParameters{
+                to: self.owner,
+                bounce: false,
+                value: 0,
+                mode: SendRemainingBalance,
+                body: msg.toCell(),
+            }
+        );
     }
 }
 

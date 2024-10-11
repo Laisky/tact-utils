@@ -1,5 +1,5 @@
-import { toNano } from '@ton/core';
 import { NetworkProvider, sleep } from '@ton/blueprint';
+import { beginCell, Slice, toNano } from '@ton/core';
 
 import { HelloWorld } from "../build/HelloWorld/tact_HelloWorld";
 import { HelloWorldV2 } from "../build/HelloWorld/tact_HelloWorldV2";

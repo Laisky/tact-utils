@@ -148,12 +148,12 @@ import './tact-utils/contracts/common/messages.tact';
 
 ### Txable
 
-Set a `staticTaxFee` to charge a fixed fee for every transaction, keeping it in the contract. Owners can adjust it anytime via `SetStaticTaxFee` msg.
+Set a `staticTax` to charge a fixed fee for every transaction, keeping it in the contract. Owners can adjust it anytime via `SetStaticTaxFee` msg.
 
 ```js
 contract YOUR_CONTRACT with Txable {
     owner: Address;
-    staticTaxFee: Int as coins = ton("0.001");
+    staticTax: Int as coins = ton("0.001");
 }
 ```
 
@@ -201,7 +201,7 @@ import './tact-utils/contracts/jetton/jetton.tact';
 
 contract YOUR_CONTRACT with JettonMaster {
     owner: Address;
-    staticTaxFee: Int as coins = ton("0.001");
+    staticTax: Int as coins = ton("0.001");
     lockedValue: Int as coins = 0;
     content: Cell;
     totalSupply: Int as coins;

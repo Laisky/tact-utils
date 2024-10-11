@@ -147,7 +147,7 @@ struct Tep64TokenData {
 
 // SetStaticTaxFee is the message that used to set the static tax fee.
 message(0x1509a420) SetStaticTaxFee {
-    staticTaxFee: Int as coins;
+    staticTax: Int as coins;
 }
 
 message(0x112a9509) UpgradeContract {

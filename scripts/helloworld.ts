@@ -1,5 +1,5 @@
-import { toNano } from '@ton/core';
 import { NetworkProvider } from '@ton/blueprint';
+import { toNano } from '@ton/core';
 import { HelloWorld } from "../build/HelloWorld/tact_HelloWorld";
 
 export async function run(provider: NetworkProvider): Promise<void> {
