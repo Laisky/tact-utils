@@ -1,8 +1,21 @@
+# Staking Contract Template for TON Tact
+
+- [Staking Contract Template for TON Tact](#staking-contract-template-for-ton-tact)
+  - [Flows](#flows)
+    - [Stake TON coins](#stake-ton-coins)
+    - [Stake Jettons and TON coins](#stake-jettons-and-ton-coins)
+      - [Deploy User's Stake Wallet First](#deploy-users-stake-wallet-first)
+      - [Stake Jettons](#stake-jettons)
+    - [Release](#release)
+      - [Release TON coins](#release-ton-coins)
+      - [Release Jettons](#release-jettons)
+
+
 Users can stake TON coins along with any Jettons. The primary entity is the Staking Master Contract, and each user will have their individual Staking Wallet Contract. Users have the flexibility to stake and redeem their assets at any time.
 
 **This is an experimental contract template! 🚀 PRs are welcome! 💻✨**
 
-## Design
+## Flows
 
 ### Stake TON coins
 
