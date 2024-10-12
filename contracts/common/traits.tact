@@ -4,7 +4,7 @@ import "@stdlib/deploy";
 import "./errcodes.tact";
 import "./messages.tact";
 
-trait Txable with OwnableTransferable {
+trait Txable {
     owner: Address;
     // staticTax is the tax fee that is charged for each transaction.
     // the tax fee will be saved in the contract's balance.

@@ -50,10 +50,8 @@ message(0x59f07bc) Burn {
 message(0x7bdd97de) TokenBurnNotification {
     queryId: Int as uint64;
     amount: Int as coins;
-    // the owner property seems redundant,
-    // the owner can be extracted from the sender of the message.
-    owner: Address;
-    responseDestination: Address?;
+    sender: Address;
+    responseDestination: Address;
 }
 
 message(0xd53276db) Excesses {

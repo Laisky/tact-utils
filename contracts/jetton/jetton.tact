@@ -89,6 +89,10 @@ trait JettonMaster with Common {
         self.receiveMultiMint(msg);
     }
 
+    receive(msg: TokenBurnNotification) {
+        self.receiveBurnInternal(msg);
+    }
+
     // this is a TEP-074 standard getter method
     get fun get_jetton_data(): JettonMasterData {
         return self.getJettonData();
@@ -102,6 +106,28 @@ trait JettonMaster with Common {
 
     virtual fun getJettonWalletContract(owner: Address): StateInit {
         return initOf JettonWalletTemplate(myAddress(), owner);
+    }
+
+    virtual fun receiveBurnInternal(msg: TokenBurnNotification) {
+        let ctx: Context = context();
+        nativeThrowUnless(codeJettonBalanceNotSufficient, self.totalSupply >= msg.amount);
+
+        let walletAddr = self.get_wallet_address(msg.sender);
+        nativeThrowUnless(codeUnauthorized, sender() == walletAddr);
+
+        self.totalSupply -= msg.amount;
+
+        // refund the excess TON to the sender.
+        self.reserveValue(0);
+        send(SendParameters{
+            to: msg.responseDestination,
+            value: 0,
+            bounce: false,
+            mode: SendRemainingBalance,
+            body: Excesses{
+                queryId: msg.queryId,
+            }.toCell(),
+        });
     }
 
     // this is a non-standard method, it's used to mint new tokens to multiple users.
@@ -245,7 +271,7 @@ trait JettonWallet with Common {
     }
 
     bounced(src: bounced<TokenTransferInternal>) {
-        self.balance = self.balance + src.amount;
+        self.balance += src.amount;
     }
 
     virtual fun getJettonWalletContract(owner: Address): StateInit {
@@ -255,17 +281,19 @@ trait JettonWallet with Common {
     virtual fun receiveTokenTransfer(msg: TokenTransfer) {
         let ctx: Context = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
-        nativeThrowUnless(codeBalanceNotSufficient, self.balance >= msg.amount);
-        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= msg.forwardTonAmount);
+        nativeThrowUnless(codeJettonBalanceNotSufficient, self.balance >= msg.amount);
+        nativeThrowUnless(codeInflowValueNotSufficient,
+            ctx.value >= msg.forwardTonAmount + self.staticTax);
 
-        self.balance = self.balance - msg.amount;
+        self.balance -= msg.amount;
+
+        let destJettonContract = self.getJettonWalletContract(msg.destination);
 
         // deploy the wallet if it's not deployed yet,
         // then transfer the tokens to the wallet.
         self.reserveValue(0);
-        let jettonContract = self.getJettonWalletContract(msg.destination);
         send(SendParameters{
-            to: contractAddress(jettonContract),
+            to: contractAddress(destJettonContract),
             value: 0,
             mode: SendRemainingBalance,
             // amount could be negative, it is impossible to pre-confirm whether
@@ -281,8 +309,8 @@ trait JettonWallet with Common {
                 forwardTonAmount: msg.forwardTonAmount,
                 forwardPayload: msg.forwardPayload
             }.toCell(),
-            code: jettonContract.code,
-            data: jettonContract.data
+            code: destJettonContract.code,
+            data: destJettonContract.data
         });
     }
 
@@ -299,7 +327,7 @@ trait JettonWallet with Common {
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value > msg.forwardTonAmount);
 
         // Update balance
-        self.balance = self.balance + msg.amount;
+        self.balance += msg.amount;
 
         // send TransferNotification only if forwardTonAmount > 0
         if (msg.forwardTonAmount > 0) {
@@ -335,20 +363,23 @@ trait JettonWallet with Common {
     virtual fun receiveBurn(msg: Burn) {
         let ctx: Context = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
-        nativeThrowUnless(codeInflowValueNotSufficient, msg.amount >= 0);
         nativeThrowUnless(codeBalanceNotSufficient, self.balance >= msg.amount);
 
         // Update balance
-        self.balance = self.balance - msg.amount;
+        self.balance -= msg.amount;
 
+        // notify master to update totalSupply
         self.reserveValue(0);
         send(SendParameters{
-            to: sender(),
+            to: self.master,
             value: 0,
             mode: SendRemainingBalance,
             bounce: true,
-            body: Excesses{
-                queryId: msg.queryId
+            body: TokenBurnNotification{
+                queryId: msg.queryId,
+                amount: msg.amount,
+                sender: self.owner,
+                responseDestination: msg.responseDestination,
             }.toCell(),
         });
     }
