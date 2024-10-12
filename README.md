@@ -148,7 +148,7 @@ import './tact-utils/contracts/common/messages.tact';
 
 ### Txable
 
-Set a `staticTax` to charge a fixed fee for every transaction, keeping it in the contract. Owners can adjust it anytime via `SetStaticTaxFee` msg.
+Set a `staticTax` to charge a fixed fee for every transaction, keeping it in the contract. Owners can adjust it anytime via `SetStaticTax` msg.
 
 ```js
 contract YOUR_CONTRACT with Txable {

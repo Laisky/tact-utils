@@ -6,17 +6,19 @@ import "./messages.tact";
 
 trait Txable with OwnableTransferable {
     owner: Address;
+    // staticTax is the tax fee that is charged for each transaction.
+    // the tax fee will be saved in the contract's balance.
     staticTax: Int;
 
-    receive(msg: SetStaticTaxFee) {
-        self.receiveSetStaticTaxFee(msg);
+    receive(msg: SetStaticTax) {
+        self.receiveSetStaticTax(msg);
     }
 
     get fun staticTax(): Int {
         return self.staticTax;
     }
 
-    virtual fun receiveSetStaticTaxFee(msg: SetStaticTaxFee) {
+    virtual fun receiveSetStaticTax(msg: SetStaticTax) {
         nativeThrowUnless(codeUnauthorized, sender() == self.owner);
 
         self.staticTax = msg.staticTax;
@@ -46,19 +48,21 @@ trait Nonce {
     }
 }
 
-// Common is the common trait that will be used by the master contract
+// Common is the common trait that contains some common and useful traits.
 trait Common with Txable, Deployable {
     owner: Address;
     staticTax: Int;
+    // lockedValue is the value that is locked in the contract,
+    // can not be withdrawn by the owner.
     lockedValue: Int;
 
-    // this is a non-standard method, it's used to deposit coins to the wallet.
+    // default to forward excesses to the owner
     receive(msg: Excesses) {
         self.receiveExcesses(msg);
     }
 
     // this is a non-standard method,
-    // allows the owner to withdraw tokens from the wallet.
+    // allows the owner to withdraw unlocked balances
     receive("withdraw") {
         self.receiveWithdraw();
     }
@@ -79,6 +83,10 @@ trait Common with Txable, Deployable {
         );
     }
 
+    // can be used to reserve the balance for SendRemainingBalance.
+    // default to reserve the balance before current transaction plus staticTax.
+    //
+    // if lockedValue has been increased, the delta should be positive.
     virtual fun reserveValue(delta: Int) {
         let ctx = context();
         let val = max((myBalance() - ctx.value) + self.staticTax, self.lockedValue + self.staticTax);
@@ -104,6 +112,9 @@ native setCode(code: Cell);
 @name(set_data)
 native setData(d: Cell);
 
+// Upgradable is the trait that allows the contract to be upgraded.
+//
+// be careful when using this trait, the contract should be designed to be upgradable.
 trait Upgradable with Ownable {
     owner: Address;
 
@@ -117,6 +128,7 @@ trait Upgradable with Ownable {
             setCode(msg.code!!);
         }
 
+        // not fully tested for data upgrade
         if (msg.data != null) {
             setData(msg.data!!);
         }

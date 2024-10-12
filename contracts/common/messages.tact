@@ -145,8 +145,8 @@ struct Tep64TokenData {
 // Custom messages
 // -------------------------------------
 
-// SetStaticTaxFee is the message that used to set the static tax fee.
-message(0x1509a420) SetStaticTaxFee {
+// SetStaticTax is the message that used to set the static tax fee.
+message(0x1509a420) SetStaticTax {
     staticTax: Int as coins;
 }
 
