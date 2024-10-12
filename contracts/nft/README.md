@@ -12,7 +12,7 @@
 ## Scripts
 
 -   [../scripts/nft.ts](https://github.com/Laisky/tact-utils/blob/main/scripts/nft.ts)
--   [../tests/NFT.spec.ts](https://github.com/Laisky/tact-utils/blob/main/tests/NFT.spec.ts)
+-   [../tests/NFT.spec.ts](https://github.com/Laisky/tact-utils/blob/main/tests/Nft.spec.ts)
 
 ## Flows
 

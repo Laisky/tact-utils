@@ -288,7 +288,7 @@ trait NftItem with Common {
         // forward
         if (msg.forwardAmount > 0) {
             send(SendParameters{
-                to: msg.newOwner,
+                to: msg.responseDestination,
                 value: msg.forwardAmount,
                 bounce: false,
                 body: OwnershipAssigned{

@@ -51,7 +51,7 @@ export async function run(provider: NetworkProvider): Promise<void> {
         },
         {
             $$type: "MintNFT",
-            queryId: BigInt(Math.floor(Date.now() / 1000)),
+            queryId: BigInt(randomInt()),
             receiver: receiverAddr,
             responseDestination: receiverAddr,
             forwardAmount: toNano("0.1"),
