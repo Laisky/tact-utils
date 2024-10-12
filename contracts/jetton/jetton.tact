@@ -89,6 +89,8 @@ trait JettonMaster with Common {
         self.receiveMultiMint(msg);
     }
 
+    // this is a TEP-074 standard receiver method,
+    // it's used to update the jetton total supply when burning tokens.
     receive(msg: TokenBurnNotification) {
         self.receiveBurnInternal(msg);
     }
@@ -104,13 +106,17 @@ trait JettonMaster with Common {
         return self.getWalletAddress(owner);
     }
 
+    virtual fun getWalletAddress(owner: Address): Address {
+        return contractAddress(self.getJettonWalletContract(owner));
+    }
+
     virtual fun getJettonWalletContract(owner: Address): StateInit {
         return initOf JettonWalletTemplate(myAddress(), owner);
     }
 
     virtual fun receiveBurnInternal(msg: TokenBurnNotification) {
         let ctx: Context = context();
-        nativeThrowUnless(codeJettonBalanceNotSufficient, self.totalSupply >= msg.amount);
+        nativeThrowUnless(codeJettonBalanceInsufficient, self.totalSupply >= msg.amount);
 
         let walletAddr = self.get_wallet_address(msg.sender);
         nativeThrowUnless(codeUnauthorized, sender() == walletAddr);
@@ -130,13 +136,15 @@ trait JettonMaster with Common {
         });
     }
 
-    // this is a non-standard method, it's used to mint new tokens to multiple users.
-    virtual fun mint(msg: MintJetton){
-        let ctx = context();
+    virtual fun receiveMintJetton(msg: MintJetton) {
+        let ctx: Context = context();
+        nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
         nativeThrowUnless(codeNotMintable, self.mintable);
-        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= msg.forwardTonAmount);
+        nativeThrowUnless(codeAmountShouldBePositive, msg.amount > 0);
+        nativeThrowUnless(codeInflowValueNotSufficient,
+            ctx.value >= msg.forwardTonAmount + self.staticTax);
 
-        self.totalSupply = self.totalSupply + msg.amount;
+        self.totalSupply += msg.amount;
         let jettonWallet = self.getJettonWalletContract(msg.receiver);
 
         // deploy the wallet if it's not deployed yet,
@@ -160,30 +168,25 @@ trait JettonMaster with Common {
         });
     }
 
-    virtual fun receiveMintJetton(msg: MintJetton) {
-        let ctx: Context = context();
-        // This is my personal preference: I think nativeThrowUnless more useful
-        // than require because it lets you customize the code.
-        nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
-
-        self.mint(msg);
-    }
-
     virtual fun receiveMultiMint(msg: MultiMint) {
         let ctx: Context = context();
         nativeThrowUnless(codeNotMintable, self.mintable);
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
 
-        let totalTonAmount: Int = 0;
+        let totalTonCost: Int = 0;
         let i: Int = 0;
         while (i < msg.receiverCount) {
             let receiver = msg.receivers.get(i);
             nativeThrowUnless(codeMapIndexNotExists, receiver != null);
+            nativeThrowUnless(codeAmountShouldBePositive, receiver!!.amount > 0);
+            nativeThrowUnless(codeAmountShouldBePositive, receiver!!.tonAmount > 0);
+            nativeThrowUnless(codeReceiverInsufficientReceiverTonAmount,
+                receiver!!.tonAmount > receiver!!.forwardTonAmount);
 
-            self.totalSupply = self.totalSupply + receiver!!.amount;
-            totalTonAmount = totalTonAmount + receiver!!.tonAmount;
+            self.totalSupply += receiver!!.amount;
+            totalTonCost += receiver!!.tonAmount;
 
-            let jettonWallet = self.getJettonWalletContract(receiver!!.address);
+            let jettonWallet = self.getJettonWalletContract(receiver!!.receiver);
             send(SendParameters{
                 to: contractAddress(jettonWallet),
                 value: receiver!!.tonAmount,
@@ -192,9 +195,9 @@ trait JettonMaster with Common {
                     queryId: msg.queryId,
                     amount: receiver!!.amount,
                     from: sender(),
-                    responseDestination: sender(),
-                    forwardTonAmount: 0,
-                    forwardPayload: msg.forwardPayload,
+                    responseDestination: receiver!!.responseDestination,
+                    forwardTonAmount: receiver!!.forwardTonAmount,
+                    forwardPayload: receiver!!.forwardPayload,
                 }.toCell(),
                 code: jettonWallet.code,
                 data: jettonWallet.data
@@ -203,7 +206,8 @@ trait JettonMaster with Common {
             i = i + 1;
         }
 
-        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= totalTonAmount);
+        nativeThrowUnless(codeInflowValueNotSufficient,
+            ctx.value >= totalTonCost + self.staticTax);
 
         // refund
         self.reserveValue(0);
@@ -226,10 +230,6 @@ trait JettonMaster with Common {
             content: self.content,
             walletCode: self.getJettonWalletContract(myAddress()).code
         };
-    }
-
-    virtual fun getWalletAddress(owner: Address): Address {
-        return contractAddress(self.getJettonWalletContract(owner));
     }
 }
 
@@ -274,6 +274,10 @@ trait JettonWallet with Common {
         self.balance += src.amount;
     }
 
+    bounced(src: bounced<TokenBurnNotification>) {
+        self.balance += src.amount;
+    }
+
     virtual fun getJettonWalletContract(owner: Address): StateInit {
         return initOf JettonWalletTemplate(self.master, owner);
     }
@@ -281,7 +285,8 @@ trait JettonWallet with Common {
     virtual fun receiveTokenTransfer(msg: TokenTransfer) {
         let ctx: Context = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
-        nativeThrowUnless(codeJettonBalanceNotSufficient, self.balance >= msg.amount);
+        nativeThrowUnless(codeJettonBalanceInsufficient, self.balance >= msg.amount);
+        nativeThrowUnless(codeAmountShouldBePositive, msg.amount > 0);
         nativeThrowUnless(codeInflowValueNotSufficient,
             ctx.value >= msg.forwardTonAmount + self.staticTax);
 
@@ -316,15 +321,15 @@ trait JettonWallet with Common {
 
     virtual fun receiveTokenTransferInternal(msg: TokenTransferInternal){
         let ctx: Context = context();
+        nativeThrowUnless(codeAmountShouldBePositive, msg.amount > 0);
+        nativeThrowUnless(codeInflowValueNotSufficient,
+            ctx.value > msg.forwardTonAmount + self.staticTax);
 
         // only the owner or another jetton wallet can send TokenTransferInternal
         if (ctx.sender != self.master) {
             let peerJettonContractAddr = contractAddress(self.getJettonWalletContract(msg.from));
             nativeThrowUnless(codeUnauthorized, ctx.sender == peerJettonContractAddr);
         }
-
-        nativeThrowUnless(codeInflowValueNotSufficient, self.balance + msg.amount >= 0);
-        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value > msg.forwardTonAmount);
 
         // Update balance
         self.balance += msg.amount;
@@ -364,6 +369,7 @@ trait JettonWallet with Common {
         let ctx: Context = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
         nativeThrowUnless(codeBalanceNotSufficient, self.balance >= msg.amount);
+        nativeThrowUnless(codeAmountShouldBePositive, msg.amount > 0);
 
         // Update balance
         self.balance -= msg.amount;

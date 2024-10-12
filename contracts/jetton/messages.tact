@@ -20,12 +20,11 @@ message(0xe78d9033) MultiMint {
     queryId: Int as uint64;
     receivers: map<Int as uint32, MultiMintReceiver>;
     receiverCount: Int as uint32;
-    forwardPayload: Cell?;
 }
 
 message UpdateJettonContent {
     queryId: Int as uint64;
-    content: Tep64TokenData
+    content: Tep64TokenData;
 }
 
 // =====================================
@@ -47,7 +46,12 @@ struct JettonMasterData {
 }
 
 struct MultiMintReceiver {
-    address: Address;
+    receiver: Address;
+    // Amount of Jettokens to mint
     amount: Int;
+    // Amount of TON to forward
     tonAmount: Int as coins;
+    responseDestination: Address;
+    forwardTonAmount: Int as coins;
+    forwardPayload: Cell?;
 }
