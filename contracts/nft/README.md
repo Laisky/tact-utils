@@ -18,6 +18,10 @@
 
 ### Mint
 
+> ![](https://s3.laisky.com/uploads/2024/10/nft-mint.png)
+>
+> <https://testnet.tonviewer.com/transaction/ddf0a703fec38e0508fc72c7d74642e42167f6c6e60ed184018645e090cc2ef2>
+
 ```mermaid
 sequenceDiagram
     participant D as ResponseDestination<BR />(mostly User)
@@ -38,6 +42,10 @@ sequenceDiagram
 
 ### Transfer
 
+> ![](https://s3.laisky.com/uploads/2024/10/nft-transfer.png)
+>
+> <https://testnet.tonviewer.com/transaction/0d1cb9f5f0e30764881e0cf5bdfabdf4ce452ed55dea998729791dbc53eb654a>
+
 ```mermaid
 sequenceDiagram
     participant D as ResponseDestination<BR />(mostly User)
@@ -54,6 +62,10 @@ sequenceDiagram
 ```
 
 ### Update Collection Data
+
+> ![](https://s3.laisky.com/uploads/2024/10/nft-update.png)
+>
+> <https://testnet.tonviewer.com/transaction/dfc15c101b66e99f5bf81c2ef5a21fc553fc8610258b678d92a129d8532476f2>
 
 ```mermaid
 sequenceDiagram
