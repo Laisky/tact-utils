@@ -230,7 +230,7 @@ describe('Jetton', () => {
             from: user.address,
             to: userJettonWallet.address,
             success: true,
-            op: 0x59f07bc,  // Burn
+            op: 0x595f07bc,  // Burn
         });
         expect(tx.transactions).toHaveTransaction({
             from: userJettonWallet.address,

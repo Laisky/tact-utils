@@ -40,7 +40,7 @@ message(0x7362d09c) TransferNotification {
     forwardPayload: Cell?;
 }
 
-message(0x59f07bc) Burn {
+message(0x595f07bc) Burn {
     queryId: Int as uint64;
     amount: Int as coins;
     responseDestination: Address;

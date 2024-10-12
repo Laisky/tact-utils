@@ -1,10 +1,24 @@
 # Jetton
 
--   [TEP-74 Fungible tokens (Jettons) standard](https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md#jetton-master-contract)
+- [Jetton](#jetton)
+  - [Scripts](#scripts)
+  - [Flows](#flows)
+    - [Mint](#mint)
+    - [Transfer](#transfer)
+    - [Burn](#burn)
+
+## Scripts
+
+-   [../scripts/jetton.ts](https://github.com/Laisky/tact-utils/blob/main/scripts/jetton.ts)
+-   [../tests/Jetton.spec.ts](https://github.com/Laisky/tact-utils/blob/main/tests/Jetton.spec.ts)
 
 ## Flows
 
 ### Mint
+
+> ![](https://s3.laisky.com/uploads/2024/10/jetton-mint.png)
+>
+> <https://testnet.tonviewer.com/transaction/d73c4a2df090d881a69d76f3e13bcebb759c8a29d8e1b5aff3b6d6b89faf2f6e>
 
 ```mermaid
 sequenceDiagram
@@ -26,6 +40,10 @@ sequenceDiagram
 
 ### Transfer
 
+> ![](https://s3.laisky.com/uploads/2024/10/jetton-transfer.png)
+>
+> <https://testnet.tonviewer.com/transaction/08915faa3d2e7f5739a93211f3d82206d568acefbd7e2a186bee68c011d22da0>
+
 ```mermaid
 sequenceDiagram
     participant D as ResponseDestination<BR />(mostly User)
@@ -46,6 +64,10 @@ sequenceDiagram
 ```
 
 ### Burn
+
+> ![](https://s3.laisky.com/uploads/2024/10/jetton-burn.png)
+>
+> <https://testnet.tonviewer.com/transaction/57b516141e535a23fb14bfa6441a37b5cd5c680c307394ce5e034bc27f5fea63>
 
 ```mermaid
 sequenceDiagram

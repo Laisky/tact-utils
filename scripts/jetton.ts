@@ -1,57 +1,18 @@
 import { NetworkProvider } from '@ton/blueprint';
-import { Address, toNano } from '@ton/core';
+import { comment, toNano } from '@ton/core';
 
 import { JettonMasterTemplate } from '../build/Sample/tact_JettonMasterTemplate';
 import { JettonWalletTemplate } from '../build/Sample/tact_JettonWalletTemplate';
-import { loadTep64TokenData, Sample } from '../build/Sample/tact_Sample';
-import { getMasterContract } from './utils';
+import { loadTep64TokenData } from '../build/Sample/tact_Sample';
+import { randomInt } from './utils';
 
 
 export async function run(provider: NetworkProvider): Promise<void> {
-    let receiver = await provider.ui().input(
-        "input the address of the jetton receiver(default to yourself):",
-    );
+    const receiverAddr = provider.sender().address!!;
 
-    const sampleMasterContract = await getMasterContract(provider);
-    const sampleContract = await provider.open(
-        await Sample.fromInit(
-            sampleMasterContract.address,
-            provider.sender().address!!,
-        )
-    );
-
-    const randomNumber = Math.floor(Math.random() * 100);
-
-    // mint jetton
-    // strip prefix and suffix space
-    receiver = receiver.trim();
-    let receiverAddr: Address;
-    if (receiver) {
-        receiverAddr = Address.parse(receiver);
-    } else {
-        receiverAddr = provider.sender().address!!;
-    }
-    console.log(`mint jetton to ${receiverAddr.toString()}`);
-
-    await sampleMasterContract.send(
-        provider.sender(),
-        {
-            value: toNano("1"),
-            bounce: false,
-        },
-        {
-            $$type: "MintJettonSample",
-            queryId: BigInt(Math.floor(Date.now() / 1000)),
-            amount: toNano(randomNumber),
-            receiver: receiverAddr,
-        }
-    );
-
-    // wait jetton master deployed and show info
-    console.log("-------------------------------------");
     const jettonMasterContract = await provider.open(
         await JettonMasterTemplate.fromInit(
-            sampleContract.address,
+            receiverAddr,
             {
                 $$type: "Tep64TokenData",
                 flag: BigInt("1"),
@@ -59,9 +20,86 @@ export async function run(provider: NetworkProvider): Promise<void> {
             }
         )
     );
-    console.log(`jetton master address: ${jettonMasterContract.address}`);
-    await provider.waitForDeploy(jettonMasterContract.address, 30);
+    const jettonWalletContract = await provider.open(
+        await JettonWalletTemplate.fromInit(
+            jettonMasterContract.address,
+            receiverAddr,
+        )
+    );
 
+    console.log(`jetton master address: ${jettonMasterContract.address}`);
+
+    console.log("-------------------------------------")
+    console.log(`mint jetton to ${receiverAddr.toString()}`);
+    console.log("-------------------------------------")
+
+    await jettonMasterContract.send(
+        provider.sender(),
+        {
+            value: toNano("1"),
+            bounce: false,
+        },
+        {
+            $$type: "MintJetton",
+            queryId: BigInt(Math.floor(Date.now() / 1000)),
+            amount: toNano(randomInt()),
+            receiver: receiverAddr,
+            responseDestination: receiverAddr,
+            forwardTonAmount: toNano("0.1"),
+            forwardPayload: comment("forward_payload"),
+        }
+    );
+
+    console.log("-------------------------------------")
+    console.log(`wait jetton wallet deployed and show info`);
+    console.log("-------------------------------------")
+
+    console.log(`jetton wallet address: ${jettonWalletContract.address}`);
+    await provider.waitForDeploy(jettonWalletContract.address, 50);
+
+
+    console.log("-------------------------------------")
+    console.log(`transfer jetton`);
+    console.log("-------------------------------------")
+    await jettonWalletContract.send(
+        provider.sender(),
+        {
+            value: toNano("1"),
+            bounce: false,
+        },
+        {
+            $$type: "TokenTransfer",
+            queryId: BigInt(Math.floor(Date.now() / 1000)),
+            amount: toNano(randomInt()),
+            destination: receiverAddr,
+            responseDestination: receiverAddr,
+            customPayload: comment("transfer jetton"),
+            forwardTonAmount: toNano("0.1"),
+            forwardPayload: comment("forward_payload"),
+        }
+    );
+
+    console.log("-------------------------------------")
+    console.log(`burn jetton`);
+    console.log("-------------------------------------")
+    await jettonWalletContract.send(
+        provider.sender(),
+        {
+            value: toNano("1"),
+            bounce: false,
+        },
+        {
+            $$type: "Burn",
+            queryId: BigInt(Math.floor(Date.now() / 1000)),
+            amount: toNano("1"),
+            responseDestination: receiverAddr,
+            customPayload: comment("burn jetton"),
+        }
+    );
+
+    console.log("-------------------------------------")
+    console.log(`show jetton info`);
+    console.log("-------------------------------------")
 
     const jettonData = await jettonMasterContract.getGetJettonData();
     const jettonContent = loadTep64TokenData(jettonData.content.asSlice());
@@ -70,17 +108,6 @@ export async function run(provider: NetworkProvider): Promise<void> {
     console.log(`jetton content: ${jettonContent.content}`);
     console.log(`jetton total supply: ${jettonData.totalSupply}`);
 
-    // wait jetton wallet deployed and show info
-    console.log("-------------------------------------");
-    const jettonWalletContract = await provider.open(
-        await JettonWalletTemplate.fromInit(
-            jettonMasterContract.address,
-            provider.sender().address!!,
-        )
-    );
-
-    console.log(`jetton wallet address: ${jettonWalletContract.address}`);
-    await provider.waitForDeploy(jettonWalletContract.address, 30);
     const walletData = await jettonWalletContract.getGetWalletData();
     console.log(`jetton wallet owner: ${walletData.owner}`);
     console.log(`jetton wallet master: ${walletData.master}`);
