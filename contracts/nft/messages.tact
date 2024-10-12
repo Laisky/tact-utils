@@ -10,7 +10,8 @@ import "../common/messages.tact";
 
 message(0xe535b616) MintNFT {
     queryId: Int as uint64;
-    newOwner: Address;
+    receiver: Address;
+    responseDestination: Address;
     forwardAmount: Int as coins = 0;
     forwardPayload: Cell?;
 }

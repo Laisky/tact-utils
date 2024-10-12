@@ -44,8 +44,10 @@ contract NftCollectionTemplate with NftCollection {
             };
         }
 
-        nativeThrowUnless(codeRoyaltyNumInvalid, self.royalty.numerator < self.royalty.denominator);
-        nativeThrowUnless(codeRoyaltyNumInvalid, self.royalty.denominator > 0);
+        nativeThrowUnless(codeRoyaltyNumInvalid,
+            self.royalty.numerator < self.royalty.denominator);
+        nativeThrowUnless(codeRoyaltyNumInvalid,
+            self.royalty.denominator > 0);
     }
 }
 
@@ -168,36 +170,28 @@ trait NftCollection with Common {
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= self.staticTax + msg.forwardAmount);
 
-        self.mint(msg);
-    }
-
-    virtual fun mint(msg: MintNFT) {
-        let ctx: Context = context();
-
         let nftItemContract = self.getNftItemContract(self.nextItemIndex);
-        let transferMsg = NFTTransfer {
-            queryId: msg.queryId,
-            newOwner: msg.newOwner,
-            responseDestination: sender(),
-            forwardAmount: msg.forwardAmount,
-            forwardPayload: NftItemInitForwardPayload{
-                index: self.nextItemIndex,
-            }.toCell(),
-            customPayload: self.nextItemIndex.toString().asSlice().asCell(),
-        }.toCell();
 
+        // create NFT item contract
         self.reserveValue(0);
         send(SendParameters{
                 to: contractAddress(nftItemContract),
                 value: 0,
                 bounce: true,
                 mode: SendRemainingBalance,
-                body: transferMsg,
+                body: NFTTransfer {
+                    queryId: msg.queryId,
+                    newOwner: msg.receiver,
+                    responseDestination: msg.responseDestination,
+                    forwardAmount: msg.forwardAmount,
+                    forwardPayload: msg.forwardPayload,
+                    customPayload: self.nextItemIndex.toString().asSlice().asCell(),
+                }.toCell(),
                 code: nftItemContract.code,
                 data: nftItemContract.data,
             });
 
-        self.nextItemIndex = self.nextItemIndex + 1;
+        self.nextItemIndex += 1;
     }
 
     virtual fun receiveGetRoyaltyParams(msg: GetRoyaltyParams) {
@@ -287,20 +281,16 @@ trait NftItem with Common {
             nativeThrowUnless(codeUnauthorized, ctx.sender == self.collection);
             nativeThrowUnless(codeNftCustomPayloadInvalid, msg.customPayload != null);
 
-            // let data: NftItemInitiation = NftItemInitiation.fromCell(msg.customPayload!!);
-            // self.itemIndex = data.index;
-
             self.individualContent = msg.customPayload!!;
             self.initialized = true;
         }
 
-        // forward fee
+        // forward
         if (msg.forwardAmount > 0) {
             send(SendParameters{
                 to: msg.newOwner,
                 value: msg.forwardAmount,
                 bounce: false,
-                // mode: SendIgnoreErrors,
                 body: OwnershipAssigned{
                     queryId: msg.queryId,
                     prevOwner: prevOwner,

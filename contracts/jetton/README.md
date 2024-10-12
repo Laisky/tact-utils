@@ -7,6 +7,8 @@
     - [Transfer](#transfer)
     - [Burn](#burn)
 
+[📖 TEP-074 Fungible tokens (Jettons) standard](https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md)
+
 ## Scripts
 
 -   [../scripts/jetton.ts](https://github.com/Laisky/tact-utils/blob/main/scripts/jetton.ts)

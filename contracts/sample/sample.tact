@@ -206,7 +206,8 @@ contract Sample with Common {
             bounce: true,
             body: MintNFT{
                 queryId: msg.queryId,
-                newOwner: myAddress(),
+                receiver: myAddress(),
+                responseDestination: myAddress(),
                 forwardAmount: ton("0.1"),
                 forwardPayload: msg.toCell(),
             }.toCell(),
