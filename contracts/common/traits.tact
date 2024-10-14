@@ -67,11 +67,21 @@ trait Common with Txable, Deployable {
         self.receiveWithdraw();
     }
 
+    get fun balance(): Int {
+        return myBalance();
+    }
+
     virtual fun receiveWithdraw() {
         let ctx: Context = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.owner);
-        nativeThrowUnless(codeBalanceNotSufficient, myBalance() > (self.lockedValue + self.staticTax));
-        nativeReserve(self.lockedValue + self.staticTax, ReserveExact);
+        nativeThrowUnless(codeBalanceNotSufficient,
+            myBalance() > (self.lockedValue + self.staticTax));
+
+        // if there is some locked value in the contract,
+        // should reserve the balance a little more than the locked value.
+        if (self.lockedValue != 0) {
+            nativeReserve(self.lockedValue + self.staticTax, ReserveExact);
+        }
 
         send(SendParameters{
                 to: self.owner,

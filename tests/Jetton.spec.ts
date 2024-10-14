@@ -16,20 +16,20 @@ describe('Jetton', () => {
     let jettonMasterContract: SandboxContract<JettonMasterTemplate>;
     let ownerJettonWallet: SandboxContract<JettonWalletTemplate>;
     let userJettonWallet: SandboxContract<JettonWalletTemplate>;
-    let deployer: SandboxContract<TreasuryContract>;
+    let admin: SandboxContract<TreasuryContract>;
     let user: SandboxContract<TreasuryContract>;
     let forwardReceiver: SandboxContract<TreasuryContract>;
     let nJettonOwnerHas: bigint = toNano(Math.random() * 100);
 
     beforeAll(async () => {
         blockchain = await Blockchain.create();
-        deployer = await blockchain.treasury('deployer');
+        admin = await blockchain.treasury('admin');
         user = await blockchain.treasury('user');
         forwardReceiver = await blockchain.treasury('forwardReceiver');
 
         jettonMasterContract = blockchain.openContract(
             await JettonMasterTemplate.fromInit(
-                deployer.address,
+                admin.address,
                 {
                     $$type: "Tep64TokenData",
                     flag: BigInt(1),
@@ -41,7 +41,7 @@ describe('Jetton', () => {
         ownerJettonWallet = blockchain.openContract(
             await JettonWalletTemplate.fromInit(
                 jettonMasterContract.address,
-                deployer.address,
+                admin.address,
             )
         );
 
@@ -55,14 +55,24 @@ describe('Jetton', () => {
         console.log(`jettonMasterContract: ${jettonMasterContract.address}`);
         console.log(`ownerJettonWallet: ${ownerJettonWallet.address}`);
         console.log(`userJettonWallet: ${userJettonWallet.address}`);
-        console.log(`deployer: ${deployer.address}`);
+        console.log(`admin: ${admin.address}`);
         console.log(`user: ${user.address}`);
         console.log(`forwardReceiver: ${forwardReceiver.address}`);
     });
 
+    it("signature for contracts code", async () => {
+        const codeHash1 = ownerJettonWallet.init!!.code.hash();
+        const codeHash2 = userJettonWallet.init!!.code.hash();
+        expect(codeHash1.equals(codeHash2)).toBeTruthy();
+
+        const dataHash1 = ownerJettonWallet.init!!.data.hash();
+        const dataHash2 = userJettonWallet.init!!.data.hash();
+        expect(dataHash1.equals(dataHash2)).toBeFalsy();
+    });
+
     it("deploy master contract", async () => {
         const tx = await jettonMasterContract.send(
-            deployer.getSender(),
+            admin.getSender(),
             {
                 value: toNano("1"),
                 bounce: false,
@@ -77,7 +87,7 @@ describe('Jetton', () => {
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
-            from: deployer.address,
+            from: admin.address,
             to: jettonMasterContract.address,
             success: true,
             op: 0x946a98b6,
@@ -89,7 +99,7 @@ describe('Jetton', () => {
         const jettonData = await jettonMasterContract.getGetJettonData();
         expect(jettonData.totalSupply).toEqual(BigInt(0));
         expect(jettonData.mintable).toBeTruthy();
-        expect(jettonData.owner.equals(deployer.address)).toBeTruthy();
+        expect(jettonData.owner.equals(admin.address)).toBeTruthy();
 
         const jettonContent = loadTep64TokenData(jettonData.content.asSlice());
         expect(jettonContent.flag).toEqual(BigInt(1));
@@ -98,7 +108,7 @@ describe('Jetton', () => {
 
     it("mint to owner", async () => {
         const tx = await jettonMasterContract.send(
-            deployer.getSender(),
+            admin.getSender(),
             {
                 value: toNano("1"),
                 bounce: false,
@@ -107,7 +117,7 @@ describe('Jetton', () => {
                 $$type: "MintJetton",
                 queryId: BigInt(Math.floor(Date.now() / 1000)),
                 amount: nJettonOwnerHas,
-                receiver: deployer.address,
+                receiver: admin.address,
                 responseDestination: forwardReceiver.address,
                 forwardTonAmount: toNano("0.1"),
                 forwardPayload: comment("jetton forward msg"),
@@ -118,7 +128,7 @@ describe('Jetton', () => {
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
-            from: deployer.address,
+            from: admin.address,
             to: jettonMasterContract.address,
             success: true,
             op: 0xa593886f,  // MintJetton
@@ -143,14 +153,14 @@ describe('Jetton', () => {
         });
 
         const jettonData = await ownerJettonWallet.getGetWalletData();
-        expect(jettonData.owner.equals(deployer.address)).toBeTruthy();
+        expect(jettonData.owner.equals(admin.address)).toBeTruthy();
         expect(jettonData.balance).toEqual(nJettonOwnerHas);
         expect(jettonData.master.equals(jettonMasterContract.address)).toBeTruthy();
     });
 
     it("transfer to user", async () => {
         const tx = await ownerJettonWallet.send(
-            deployer.getSender(),
+            admin.getSender(),
             {
                 value: toNano("1"),
                 bounce: false,
@@ -171,7 +181,7 @@ describe('Jetton', () => {
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
-            from: deployer.address,
+            from: admin.address,
             to: ownerJettonWallet.address,
             success: true,
             op: 0xf8a7ea5,  // TokenTransfer
@@ -252,5 +262,59 @@ describe('Jetton', () => {
         expect(jettonData.owner.equals(user.address)).toBeTruthy();
         expect(jettonData.balance).toEqual(BigInt(0));
         expect(jettonData.master.equals(jettonMasterContract.address)).toBeTruthy();
+    });
+
+    it("withdraw by unauthorized user", async () => {
+        const balanceBefore = await userJettonWallet.getBalance();
+
+        const tx = await userJettonWallet.send(
+            admin.getSender(),
+            {
+                value: toNano("1"),
+                bounce: true,
+            },
+            "withdraw",
+        );
+        console.log("withdraw by unauthorized user");
+        console.log("printTransactionFees");
+        printTransactionFees(tx.transactions);
+
+        expect(tx.transactions).toHaveTransaction({
+            from: admin.address,
+            to: userJettonWallet.address,
+            success: false,
+        });
+
+        const balance = await userJettonWallet.getBalance();
+        expect(balance).toEqual(balanceBefore);
+    });
+
+    it("user withdraw", async () => {
+        const tx = await userJettonWallet.send(
+            user.getSender(),
+            {
+                value: toNano("1"),
+                bounce: false,
+            },
+            "withdraw",
+        );
+        console.log("withdraw");
+        console.log("printTransactionFees");
+        printTransactionFees(tx.transactions);
+
+        expect(tx.transactions).toHaveTransaction({
+            from: user.address,
+            to: userJettonWallet.address,
+            success: true,
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: userJettonWallet.address,
+            to: user.address,
+            success: true,
+            op: 0xd53276db,  // Excesses
+        });
+
+        const balance = await userJettonWallet.getBalance();
+        expect(balance).toEqual(toNano("0"));
     });
 });
