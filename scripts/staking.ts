@@ -109,7 +109,7 @@ export async function run(provider: NetworkProvider): Promise<void> {
             queryId: BigInt(randomInt()),
             amount: toNano("0.01"),
             responseDestination: provider.sender().address!!,
-            forwardTonAmount: toNano("0.1"),
+            forwardAmount: toNano("0.1"),
             forwardPayload: comment("forward_payload"),
         }
     );
@@ -129,13 +129,13 @@ export async function run(provider: NetworkProvider): Promise<void> {
             amount: toNano("1"),
             destination: stakingMasterContract.address,
             responseDestination: stakingWalletContract.address,
-            forwardTonAmount: toNano("0.2"),
+            forwardAmount: toNano("0.2"),
             forwardPayload: beginCell()
                 .store(storeStakeJetton({
                     $$type: "StakeJetton",
                     tonAmount: toNano("0.01"),
                     responseDestination: provider.sender().address!!,
-                    forwardTonAmount: toNano("0.1"),
+                    forwardAmount: toNano("0.1"),
                     forwardPayload: comment("forward_payload"),
                 }))
                 .endCell(),
@@ -174,7 +174,7 @@ export async function run(provider: NetworkProvider): Promise<void> {
             jettonWallet: stakingJettonWalletContract.address,
             destination: provider.sender().address!!,
             customPayload: null,
-            forwardTonAmount: toNano("0.1"),
+            forwardAmount: toNano("0.1"),
             forwardPayload: comment("forward_payload"),
         }
     )
@@ -195,7 +195,7 @@ export async function run(provider: NetworkProvider): Promise<void> {
             destination: provider.sender().address!!,
             responseDestination: provider.sender().address!!,
             customPayload: comment("custom_payload"),
-            forwardTonAmount: toNano("0.1"),
+            forwardAmount: toNano("0.1"),
             forwardPayload: comment("forward_payload"),
         }
     );

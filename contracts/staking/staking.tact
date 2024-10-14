@@ -110,7 +110,7 @@ trait StakingMaster with Common {
     virtual fun receiveStakeToncoin(msg: StakeToncoin) {
         let ctx = context();
         nativeThrowUnless(codeInflowValueNotSufficient,
-            ctx.value >= msg.amount + msg.forwardTonAmount + self.staticTax);
+            ctx.value >= msg.amount + msg.forwardAmount + self.staticTax);
         nativeThrowUnless(codeStakeAmountMustBePositive, msg.amount > 0);
 
         self.lockedValue += msg.amount;
@@ -166,7 +166,7 @@ trait StakingMaster with Common {
                     destination: jetton.destination,
                     responseDestination: msg.responseDestination,
                     customPayload: jetton.customPayload,
-                    forwardTonAmount: jetton.forwardTonAmount,
+                    forwardAmount: jetton.forwardAmount,
                     forwardPayload: jetton.forwardPayload,
                 }.toCell(),
             });
@@ -175,15 +175,15 @@ trait StakingMaster with Common {
         }
 
         // check cost
-        totalCost += msg.forwardTonAmount;
+        totalCost += msg.forwardAmount;
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= totalCost + self.staticTax);
 
         // forward
-        if (msg.forwardTonAmount > 0) {
+        if (msg.forwardAmount > 0) {
             send(SendParameters{
                 to: msg.responseDestination,
                 bounce: false,
-                value: msg.forwardTonAmount,
+                value: msg.forwardAmount,
                 body: StakeReleaseNotification{
                     queryId: msg.queryId,
                     amount: msg.amount,
@@ -272,7 +272,7 @@ trait StakingWallet with Common {
 
         let stakeMsg = StakeJetton.fromCell(msg.forwardPayload!!);
         nativeThrowUnless(codeInflowValueNotSufficient,
-            ctx.value >= stakeMsg.tonAmount + stakeMsg.forwardTonAmount + self.staticTax);
+            ctx.value >= stakeMsg.tonAmount + stakeMsg.forwardAmount + self.staticTax);
         nativeThrowUnless(codeStakeAmountMustBePositive, stakeMsg.tonAmount >= 0);
 
         // update staked info
@@ -284,11 +284,11 @@ trait StakingWallet with Common {
             }
         );
 
-        if (stakeMsg.forwardTonAmount > 0) {
+        if (stakeMsg.forwardAmount > 0) {
             send(SendParameters{
                 to: stakeMsg.responseDestination,
                 bounce: false,
-                value: stakeMsg.forwardTonAmount,
+                value: stakeMsg.forwardAmount,
                 body: StakeNotification{
                     queryId: msg.queryId,
                     amount: stakeMsg.tonAmount,
@@ -350,7 +350,7 @@ trait StakingWallet with Common {
         }
 
         // check cost
-        totalCost += msg.forwardTonAmount;
+        totalCost += msg.forwardAmount;
         nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= totalCost + self.staticTax);
 
         // told staking master to transfer released jetton
@@ -375,15 +375,15 @@ trait StakingWallet with Common {
         let ctx = context();
         nativeThrowUnless(codeUnauthorized, ctx.sender == self.master);
         nativeThrowUnless(codeInflowValueNotSufficient,
-            ctx.value >= msg.forwardTonAmount + self.staticTax);
+            ctx.value >= msg.forwardAmount + self.staticTax);
 
         self.stakedTon += msg.amount;
 
-        if (msg.forwardTonAmount > 0) {
+        if (msg.forwardAmount > 0) {
             send(SendParameters{
                 to: msg.responseDestination,
                 bounce: false,
-                value: msg.forwardTonAmount,
+                value: msg.forwardAmount,
                 body: StakeNotification{
                     queryId: msg.queryId,
                     amount: msg.amount,

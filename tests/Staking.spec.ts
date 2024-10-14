@@ -123,7 +123,7 @@ describe('Staking', () => {
                 amount: toNano("10"),
                 receiver: user.address,
                 responseDestination: admin.address,
-                forwardTonAmount: toNano("0"),
+                forwardAmount: toNano("0"),
                 forwardPayload: null,
             }
         );
@@ -156,7 +156,7 @@ describe('Staking', () => {
                 queryId: BigInt(Math.ceil(Math.random() * 1000000)),
                 amount: toNano("0.5"),
                 responseDestination: user.address,
-                forwardTonAmount: toNano("0.1"),
+                forwardAmount: toNano("0.1"),
                 forwardPayload: comment("forward_payload"),
             }
         );
@@ -204,13 +204,13 @@ describe('Staking', () => {
                 amount: toNano("1"),
                 destination: stakeMasterContract.address,
                 responseDestination: userStakeWallet.address,
-                forwardTonAmount: toNano("0.5"),
+                forwardAmount: toNano("0.5"),
                 forwardPayload: beginCell()
                     .store(storeStakeJetton({
                         $$type: "StakeJetton",
                         tonAmount: toNano("0.1"),
                         responseDestination: user.address,
-                        forwardTonAmount: toNano("0.1"),
+                        forwardAmount: toNano("0.1"),
                         forwardPayload: comment("forward_payload"),
                     }))
                     .endCell(),
@@ -281,7 +281,7 @@ describe('Staking', () => {
             tonAmount: toNano("0.2"),
             jettonAmount: toNano("1"),
             jettonWallet: stakeJettonWallet.address,
-            forwardTonAmount: toNano("0.1"),
+            forwardAmount: toNano("0.1"),
             destination: user.address,
             customPayload: null,
             forwardPayload: comment("forward_payload"),
@@ -304,7 +304,7 @@ describe('Staking', () => {
                 responseDestination: user.address,
                 customPayload: comment("custom_payload"),
                 forwardPayload: comment("forward_payload"),
-                forwardTonAmount: toNano("0.1"),
+                forwardAmount: toNano("0.1"),
             }
         );
         console.log("printTransactionFees");

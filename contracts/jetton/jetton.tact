@@ -142,7 +142,7 @@ trait JettonMaster with Common {
         nativeThrowUnless(codeNotMintable, self.mintable);
         nativeThrowUnless(codeAmountShouldBePositive, msg.amount > 0);
         nativeThrowUnless(codeInflowValueNotSufficient,
-            ctx.value >= msg.forwardTonAmount + self.staticTax);
+            ctx.value >= msg.forwardAmount + self.staticTax);
 
         self.totalSupply += msg.amount;
         let jettonWallet = self.getJettonWalletContract(msg.receiver);
@@ -160,7 +160,7 @@ trait JettonMaster with Common {
                 amount: msg.amount,
                 from: sender(),
                 responseDestination: msg.responseDestination,
-                forwardTonAmount: msg.forwardTonAmount,
+                forwardAmount: msg.forwardAmount,
                 forwardPayload: msg.forwardPayload,
             }.toCell(),
             code: jettonWallet.code,
@@ -181,7 +181,7 @@ trait JettonMaster with Common {
             nativeThrowUnless(codeAmountShouldBePositive, receiver!!.amount > 0);
             nativeThrowUnless(codeAmountShouldBePositive, receiver!!.tonAmount > 0);
             nativeThrowUnless(codeReceiverInsufficientReceiverTonAmount,
-                receiver!!.tonAmount > receiver!!.forwardTonAmount);
+                receiver!!.tonAmount > receiver!!.forwardAmount);
 
             self.totalSupply += receiver!!.amount;
             totalTonCost += receiver!!.tonAmount;
@@ -196,7 +196,7 @@ trait JettonMaster with Common {
                     amount: receiver!!.amount,
                     from: sender(),
                     responseDestination: receiver!!.responseDestination,
-                    forwardTonAmount: receiver!!.forwardTonAmount,
+                    forwardAmount: receiver!!.forwardAmount,
                     forwardPayload: receiver!!.forwardPayload,
                 }.toCell(),
                 code: jettonWallet.code,
@@ -288,7 +288,7 @@ trait JettonWallet with Common {
         nativeThrowUnless(codeJettonBalanceInsufficient, self.balance >= msg.amount);
         nativeThrowUnless(codeAmountShouldBePositive, msg.amount > 0);
         nativeThrowUnless(codeInflowValueNotSufficient,
-            ctx.value >= msg.forwardTonAmount + self.staticTax);
+            ctx.value >= msg.forwardAmount + self.staticTax);
 
         self.balance -= msg.amount;
 
@@ -311,7 +311,7 @@ trait JettonWallet with Common {
                 amount: msg.amount,
                 from: self.owner,
                 responseDestination: msg.responseDestination,
-                forwardTonAmount: msg.forwardTonAmount,
+                forwardAmount: msg.forwardAmount,
                 forwardPayload: msg.forwardPayload
             }.toCell(),
             code: destJettonContract.code,
@@ -323,7 +323,7 @@ trait JettonWallet with Common {
         let ctx: Context = context();
         nativeThrowUnless(codeAmountShouldBePositive, msg.amount > 0);
         nativeThrowUnless(codeInflowValueNotSufficient,
-            ctx.value > msg.forwardTonAmount + self.staticTax);
+            ctx.value > msg.forwardAmount + self.staticTax);
 
         // only the owner or another jetton wallet can send TokenTransferInternal
         if (ctx.sender != self.master) {
@@ -334,11 +334,11 @@ trait JettonWallet with Common {
         // Update balance
         self.balance += msg.amount;
 
-        // send TransferNotification only if forwardTonAmount > 0
-        if (msg.forwardTonAmount > 0) {
+        // send TransferNotification only if forwardAmount > 0
+        if (msg.forwardAmount > 0) {
             send(SendParameters{
                 to: msg.responseDestination,
-                value: msg.forwardTonAmount,
+                value: msg.forwardAmount,
                 bounce: false,
                 // mode: SendIgnoreErrors,
                 body: TransferNotification{

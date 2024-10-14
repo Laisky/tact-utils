@@ -4,6 +4,7 @@
 
 import "../common/traits.tact";
 import "../jetton/jetton.tact";
+import "../staking/staking.tact";
 import "../jetton/messages.tact";
 import "../nft/nft.tact";
 import "../nft/messages.tact";
@@ -40,7 +41,14 @@ contract SampleMaster with Common {
             value: 0,
             mode: SendRemainingBalance,
             bounce: false,
-            body: msg.toCell(),
+            body: MintJetton{
+                queryId: msg.queryId,
+                amount: msg.amount,
+                receiver: msg.receiver,
+                responseDestination: msg.receiver,
+                forwardAmount: ton("0.1"),
+                forwardPayload: "Newly minted jetton".asComment(),
+            }.toCell(),
             data: sampleContract.data,
             code: sampleContract.code,
         });
@@ -58,7 +66,13 @@ contract SampleMaster with Common {
             value: 0,
             mode: SendRemainingBalance,
             bounce: false,
-            body: msg.toCell(),
+            body: MintNFT{
+                queryId: msg.queryId,
+                receiver: msg.receiver,
+                responseDestination: msg.receiver,
+                forwardAmount: ton("0.1"),
+                forwardPayload: "Newly minted nft".asComment(),
+            }.toCell(),
             data: sampleContract.data,
             code: sampleContract.code,
         });
@@ -84,6 +98,32 @@ contract Sample with Common {
                 flag: 1,
                 content: "https://s3.laisky.com/uploads/2024/09/jetton-sample.json",
             },
+        );
+    }
+
+    fun getNftCollectionContract(): StateInit {
+        return initOf NftCollectionSample(
+            myAddress(),
+            Tep64TokenData{
+                flag: 1,
+                content: "https://s3.laisky.com/uploads/2024/09/nft-sample-collection.json",
+            },
+            "https://s3.laisky.com/uploads/2024/09/nft-sample-item-",
+            null,
+        );
+    }
+
+    fun getStakingMasterContract(): StateInit {
+        return initOf StakingMasterTemplate(
+            myAddress(),
+        );
+    }
+
+    fun getStakingWalletContract(): StateInit {
+        let master = self.getStakingMasterContract();
+        return initOf StakingWalletTemplate(
+            contractAddress(master),
+            myAddress(),
         );
     }
 
@@ -123,10 +163,9 @@ contract Sample with Common {
     }
 
     // mint new jetton for self, then transfer it to the sender
-    receive(msg: MintJettonSample) {
+    receive(msg: MintJetton) {
         let ctx = context();
         nativeThrowUnless(codeUnauthorized, sender() == self.master);
-        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= ton("0.1"));
 
         let jettonMasterContract = self.getJettonMaster();
 
@@ -136,65 +175,16 @@ contract Sample with Common {
             value: 0,
             mode: SendRemainingBalance,
             bounce: true,
-            body: MintJetton{
-                queryId: msg.queryId,
-                amount: msg.amount,
-                receiver: myAddress(),
-                responseDestination: myAddress(),
-                forwardTonAmount: ton("0.1"),
-                forwardPayload: msg.toCell(),
-            }.toCell(),
+            body: msg.toCell(),
             code: jettonMasterContract.code,
             data: jettonMasterContract.data,
         });
     }
 
-    // transfer jetton to the destination
-    receive(msg: TransferNotification) {
-        let jettonMasterContract = self.getJettonMaster();
-        let jettonWalletContract = initOf JettonWalletTemplate(
-            contractAddress(jettonMasterContract),
-            myAddress(),
-        );
-
-        nativeThrowUnless(codeUnauthorized, sender() == contractAddress(jettonWalletContract));
-        nativeThrowUnless(codeForwardPayloadInvalid, msg.forwardPayload != null);
-
-        let mintMsg = MintJettonSample.fromCell(msg.forwardPayload!!);
-
-        self.reserveValue(0);
-        send(SendParameters{
-            to: contractAddress(jettonWalletContract),
-            value: 0,
-            mode: SendRemainingBalance,
-            bounce: false,
-            body: TokenTransfer{
-                queryId: msg.queryId,
-                amount: msg.amount,
-                destination: mintMsg.receiver,
-                responseDestination: self.owner,
-                forwardTonAmount: ton("0"),
-            }.toCell(),
-        });
-    }
-
-    fun getNftCollectionContract(): StateInit {
-        return initOf NftCollectionSample(
-            myAddress(),
-            Tep64TokenData{
-                flag: 1,
-                content: "https://s3.laisky.com/uploads/2024/09/nft-sample-collection.json",
-            },
-            "https://s3.laisky.com/uploads/2024/09/nft-sample-item-",
-            null,
-        );
-    }
-
     // mint new nft for self, then transfer it to the sender
-    receive(msg: MintNftSample) {
+    receive(msg: MintNFT) {
         let ctx = context();
         nativeThrowUnless(codeUnauthorized, sender() == self.master);
-        nativeThrowUnless(codeInflowValueNotSufficient, ctx.value >= ton("0.1"));
 
         let nftMasterContract = self.getNftCollectionContract();
 
@@ -204,47 +194,9 @@ contract Sample with Common {
             value: 0,
             mode: SendRemainingBalance,
             bounce: true,
-            body: MintNFT{
-                queryId: msg.queryId,
-                receiver: myAddress(),
-                responseDestination: myAddress(),
-                forwardAmount: ton("0.1"),
-                forwardPayload: msg.toCell(),
-            }.toCell(),
+            body: msg.toCell(),
             code: nftMasterContract.code,
             data: nftMasterContract.data,
-        });
-    }
-
-    // transfer nft to the destination
-    receive(msg: OwnershipAssigned) {
-        nativeThrowUnless(codeForwardPayloadInvalid, msg.forwardPayload != null);
-        let forwardData = NftItemInitForwardPayload.fromCell(msg.forwardPayload!!);
-
-        let nftMasterContract = self.getNftCollectionContract();
-        let nftItemContract = initOf NftItemTemplate(
-            contractAddress(nftMasterContract),
-            forwardData.index,
-        );
-
-        nativeThrowUnless(codeUnauthorized, sender() == contractAddress(nftItemContract));
-
-        let mintMsg = MintNftSample.fromCell(msg.forwardPayload!!);
-
-        self.reserveValue(0);
-        send(SendParameters{
-            to: contractAddress(nftItemContract),
-            value: 0,
-            mode: SendRemainingBalance,
-            bounce: false,
-            body: NFTTransfer{
-                queryId: msg.queryId,
-                newOwner: mintMsg.receiver,
-                responseDestination: self.owner,
-                forwardAmount: ton("0"),
-                forwardPayload: emptyCell(),
-                customPayload: emptyCell(),
-            }.toCell(),
         });
     }
 }

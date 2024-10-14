@@ -119,7 +119,7 @@ describe('Jetton', () => {
                 amount: nJettonOwnerHas,
                 receiver: admin.address,
                 responseDestination: forwardReceiver.address,
-                forwardTonAmount: toNano("0.1"),
+                forwardAmount: toNano("0.1"),
                 forwardPayload: comment("jetton forward msg"),
             },
         );
@@ -171,7 +171,7 @@ describe('Jetton', () => {
                 amount: nJettonOwnerHas,
                 destination: user.address,
                 responseDestination: forwardReceiver.address,
-                forwardTonAmount: toNano("0.1"),
+                forwardAmount: toNano("0.1"),
                 forwardPayload: comment("jetton forward msg"),
                 customPayload: null,
             },

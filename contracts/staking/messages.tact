@@ -21,7 +21,7 @@ message(0x7ac4404c) StakeToncoin {
     // address to send the response to
     responseDestination: Address;
     // amount of TON to forward
-    forwardTonAmount: Int as coins;
+    forwardAmount: Int as coins;
     // payload to forward
     forwardPayload: Cell?;
 }
@@ -64,7 +64,7 @@ message(0x51fa3a81) StakeRelease {
     // the custom payload to be sent with the released ton coins
     customPayload: Cell?;
     // amount of TON to forward
-    forwardTonAmount: Int as coins;
+    forwardAmount: Int as coins;
     // payload to forward
     forwardPayload: Cell?;
 }
@@ -80,21 +80,21 @@ struct TokenTransferForwardPayload {
 }
 
 // put StakeJetton as the forwardPayload in TokenTransfer.
-// and the forwardTonAmount of TokenTransfer should be greater than
-// the sum of the tonAmount and forwardTonAmount of StakeJetton.
+// and the forwardAmount of TokenTransfer should be greater than
+// the sum of the tonAmount and forwardAmount of StakeJetton.
 struct StakeJetton {
     tonAmount: Int as coins;
     // address to send the response to
     responseDestination: Address;
     // amount of TON to forward
-    forwardTonAmount: Int as coins;
+    forwardAmount: Int as coins;
     // payload to forward
     forwardPayload: Cell?;
 }
 
 struct StakeReleaseJettonInfo {
     // pay the token transfer fee,
-    // should be greater than forwardTonAmount.
+    // should be greater than forwardAmount.
     tonAmount: Int as coins;
     jettonAmount: Int as coins;
     jettonWallet: Address;
@@ -103,7 +103,7 @@ struct StakeReleaseJettonInfo {
     destination: Address;
     customPayload: Cell?;
     // amount of TON to forward
-    forwardTonAmount: Int as coins;
+    forwardAmount: Int as coins;
     // payload to forward
     forwardPayload: Cell?;
 }

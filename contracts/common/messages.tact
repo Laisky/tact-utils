@@ -16,7 +16,7 @@ message(0xf8a7ea5) TokenTransfer {
     customPayload: Cell?;
     // the amount of TON coins to forward,
     // if not zero, will send additional msg with the specified amount
-    forwardTonAmount: Int as coins;
+    forwardAmount: Int as coins;
     // the payload to forward
     forwardPayload: Cell?;
 }
@@ -27,7 +27,7 @@ message(0x178d4519) TokenTransferInternal {
     amount: Int as coins;
     from: Address;
     responseDestination: Address;
-    forwardTonAmount: Int as coins;
+    forwardAmount: Int as coins;
     forwardPayload: Cell?;
 }
 

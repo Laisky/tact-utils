@@ -8,3 +8,4 @@ const codeUnauthorized: Int = 1003;
 const codeNonceInvalid: Int = 1004;
 const codeNotImplemented: Int = 1005;
 const codeMsgValueInvalid: Int = 1006;
+const codeForwardPayloadInvalid: Int = 1007;

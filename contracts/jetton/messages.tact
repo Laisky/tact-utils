@@ -10,7 +10,7 @@ message(0xa593886f) MintJetton {
     amount: Int;
     receiver: Address;
     responseDestination: Address;
-    forwardTonAmount: Int as coins;
+    forwardAmount: Int as coins;
     forwardPayload: Cell?;
 }
 
@@ -52,6 +52,6 @@ struct MultiMintReceiver {
     // Amount of TON to forward
     tonAmount: Int as coins;
     responseDestination: Address;
-    forwardTonAmount: Int as coins;
+    forwardAmount: Int as coins;
     forwardPayload: Cell?;
 }

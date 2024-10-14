@@ -45,7 +45,7 @@ export async function run(provider: NetworkProvider): Promise<void> {
             amount: toNano(randomInt()),
             receiver: receiverAddr,
             responseDestination: receiverAddr,
-            forwardTonAmount: toNano("0.1"),
+            forwardAmount: toNano("0.1"),
             forwardPayload: comment("forward_payload"),
         }
     );
@@ -74,7 +74,7 @@ export async function run(provider: NetworkProvider): Promise<void> {
             destination: receiverAddr,
             responseDestination: receiverAddr,
             customPayload: comment("transfer jetton"),
-            forwardTonAmount: toNano("0.1"),
+            forwardAmount: toNano("0.1"),
             forwardPayload: comment("forward_payload"),
         }
     );
