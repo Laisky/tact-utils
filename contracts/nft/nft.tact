@@ -195,13 +195,10 @@ trait NftCollection with Common {
     }
 
     virtual fun receiveGetRoyaltyParams(msg: GetRoyaltyParams) {
-        let ctx: Context = context();
-
-        self.reserveValue(0);
         send(SendParameters {
             to: sender(),
             value: 0,
-            mode: SendRemainingBalance,
+            mode: SendRemainingValue,
             bounce: false,
             body: ReportRoyaltyParams{
                 queryId: msg.queryId,

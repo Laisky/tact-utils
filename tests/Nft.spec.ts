@@ -10,9 +10,9 @@ import '@ton/test-utils';
 import { NftCollectionTemplate } from '../build/Sample/tact_NftCollectionTemplate';
 import { NftItemTemplate } from '../build/Sample/tact_NftItemTemplate';
 import { loadTep64TokenData } from '../build/Sample/tact_NftCollectionSample';
+import { randomInt } from '../scripts/utils';
 
 describe('NFT', () => {
-
     let blockchain: Blockchain;
     let nftCollectionContract: SandboxContract<NftCollectionTemplate>;
     let nftItemContract: SandboxContract<NftItemTemplate>;
@@ -35,7 +35,12 @@ describe('NFT', () => {
                     content: "https://s3.laisky.com/uploads/2024/09/nft-sample-collection.json",
                 },
                 "https://s3.laisky.com/uploads/2024/09/nft-sample-item-",
-                null,
+                {
+                    $$type: "RoyaltyParams",
+                    numerator: BigInt(10),
+                    denominator: BigInt(100),
+                    destination: forwardReceiver.address,
+                },
             )
         );
 
@@ -62,14 +67,14 @@ describe('NFT', () => {
             },
             {
                 $$type: "MintNFT",
-                queryId: BigInt(Math.floor(Date.now() / 1000)),
+                queryId: BigInt(randomInt()),
                 receiver: user.address,
                 responseDestination: forwardReceiver.address,
                 forwardAmount: toNano("0.1"),
                 forwardPayload: comment("forward payload"),
             }
         );
-        console.log("printTransactionFees");
+        console.log("mint nft");
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
@@ -117,7 +122,7 @@ describe('NFT', () => {
             },
             {
                 $$type: "NFTTransfer",
-                queryId: BigInt(Math.floor(Date.now() / 1000)),
+                queryId: BigInt(randomInt()),
                 newOwner: admin.address,
                 responseDestination: forwardReceiver.address,
                 customPayload: comment("custom payload"),
@@ -125,7 +130,7 @@ describe('NFT', () => {
                 forwardPayload: comment("forward payload"),
             }
         );
-        console.log("printTransactionFees");
+        console.log("transfer nft");
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
@@ -160,7 +165,7 @@ describe('NFT', () => {
             },
             {
                 $$type: "UpdateCollection",
-                queryId: BigInt(Math.floor(Date.now() / 1000)),
+                queryId: BigInt(randomInt()),
                 collectionContent: {
                     $$type: "Tep64TokenData",
                     flag: BigInt("1"),
@@ -172,7 +177,7 @@ describe('NFT', () => {
             }
         );
 
-        console.log("printTransactionFees");
+        console.log("update collection content");
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
@@ -200,5 +205,40 @@ describe('NFT', () => {
         );
         const itemContentData = loadTep64TokenData(itemContent.asSlice());
         expect(itemContentData.content).toEqual("new-prefix0.json");
+    });
+
+    it("royalty", async () => {
+        const data = await nftCollectionContract.getRoyaltyParams();
+        expect(data.numerator).toEqual(BigInt(10));
+        expect(data.denominator).toEqual(BigInt(100));
+        expect(data.destination.equals(forwardReceiver.address)).toBeTruthy();
+
+        const tx = await nftCollectionContract.send(
+            admin.getSender(),
+            {
+                value: toNano("1"),
+                bounce: false,
+            },
+            {
+                $$type: "GetRoyaltyParams",
+                queryId: BigInt(randomInt()),
+            },
+        );
+
+        console.log("royalty");
+        printTransactionFees(tx.transactions);
+
+        expect(tx.transactions).toHaveTransaction({
+            from: admin.address,
+            to: nftCollectionContract.address,
+            success: true,
+            op: 0x693d3950,  // GetRoyaltyParams
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: nftCollectionContract.address,
+            to: admin.address,
+            success: true,
+            op: 0xa8cb00ad, // ReportRoyaltyParams
+        });
     });
 });
