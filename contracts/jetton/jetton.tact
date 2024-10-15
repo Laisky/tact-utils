@@ -334,10 +334,12 @@ trait JettonWallet with Common {
         // Update balance
         self.balance += msg.amount;
 
-        // send TransferNotification only if forwardAmount > 0
+        // https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md
+        // if forward_amount > 0 ensure that receiver's jetton-wallet
+        // send message to destination address, which means the new owner of the token
         if (msg.forwardAmount > 0) {
             send(SendParameters{
-                to: msg.responseDestination,
+                to: self.owner,
                 value: msg.forwardAmount,
                 bounce: false,
                 // mode: SendIgnoreErrors,

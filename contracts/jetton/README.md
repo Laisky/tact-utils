@@ -51,7 +51,8 @@ sequenceDiagram
     participant D as ResponseDestination<BR />(mostly User)
     participant B as User
     participant C as UserJettonWallet
-    participant E as AotherJettonWallet
+    participant E as NewUserJettonWallet
+    participant F as NewUser
 
     B ->>+ C: TokenTransfer<BR />(0xf8a7ea5)
     activate C
@@ -60,7 +61,7 @@ sequenceDiagram
     activate E
     Note over E: update balance
     opt
-      E -->> D: TransferNotification<BR />(0x7362d09c)
+      E -->> F: TransferNotification<BR />(0x7362d09c)
     end
     E -->>- D: Excesses<BR />(0xd53276db)
 ```

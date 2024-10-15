@@ -13,19 +13,19 @@ import { JettonWalletTemplate } from '../build/Sample/tact_JettonWalletTemplate'
 describe('Jetton', () => {
 
     let blockchain: Blockchain;
-    let jettonMasterContract: SandboxContract<JettonMasterTemplate>;
-    let ownerJettonWallet: SandboxContract<JettonWalletTemplate>;
-    let userJettonWallet: SandboxContract<JettonWalletTemplate>;
     let admin: SandboxContract<TreasuryContract>;
     let user: SandboxContract<TreasuryContract>;
-    let forwardReceiver: SandboxContract<TreasuryContract>;
+    let responseDestination: SandboxContract<TreasuryContract>;
+    let jettonMasterContract: SandboxContract<JettonMasterTemplate>;
+    let adminJettonWallet: SandboxContract<JettonWalletTemplate>;
+    let userJettonWallet: SandboxContract<JettonWalletTemplate>;
     let nJettonOwnerHas: bigint = toNano(Math.random() * 100);
 
     beforeAll(async () => {
         blockchain = await Blockchain.create();
         admin = await blockchain.treasury('admin');
         user = await blockchain.treasury('user');
-        forwardReceiver = await blockchain.treasury('forwardReceiver');
+        responseDestination = await blockchain.treasury('responseDestination');
 
         jettonMasterContract = blockchain.openContract(
             await JettonMasterTemplate.fromInit(
@@ -38,7 +38,7 @@ describe('Jetton', () => {
             )
         );
 
-        ownerJettonWallet = blockchain.openContract(
+        adminJettonWallet = blockchain.openContract(
             await JettonWalletTemplate.fromInit(
                 jettonMasterContract.address,
                 admin.address,
@@ -53,19 +53,19 @@ describe('Jetton', () => {
         );
 
         console.log(`jettonMasterContract: ${jettonMasterContract.address}`);
-        console.log(`ownerJettonWallet: ${ownerJettonWallet.address}`);
+        console.log(`adminJettonWallet: ${adminJettonWallet.address}`);
         console.log(`userJettonWallet: ${userJettonWallet.address}`);
         console.log(`admin: ${admin.address}`);
         console.log(`user: ${user.address}`);
-        console.log(`forwardReceiver: ${forwardReceiver.address}`);
+        console.log(`responseDestination: ${responseDestination.address}`);
     });
 
     it("signature for contracts code", async () => {
-        const codeHash1 = ownerJettonWallet.init!!.code.hash();
+        const codeHash1 = adminJettonWallet.init!!.code.hash();
         const codeHash2 = userJettonWallet.init!!.code.hash();
         expect(codeHash1.equals(codeHash2)).toBeTruthy();
 
-        const dataHash1 = ownerJettonWallet.init!!.data.hash();
+        const dataHash1 = adminJettonWallet.init!!.data.hash();
         const dataHash2 = userJettonWallet.init!!.data.hash();
         expect(dataHash1.equals(dataHash2)).toBeFalsy();
     });
@@ -118,7 +118,7 @@ describe('Jetton', () => {
                 queryId: BigInt(Math.floor(Date.now() / 1000)),
                 amount: nJettonOwnerHas,
                 receiver: admin.address,
-                responseDestination: forwardReceiver.address,
+                responseDestination: responseDestination.address,
                 forwardAmount: toNano("0.1"),
                 forwardPayload: comment("jetton forward msg"),
             },
@@ -135,31 +135,31 @@ describe('Jetton', () => {
         });
         expect(tx.transactions).toHaveTransaction({
             from: jettonMasterContract.address,
-            to: ownerJettonWallet.address,
+            to: adminJettonWallet.address,
             success: true,
             op: 0x178d4519,  // TokenTransferInternal
         });
         expect(tx.transactions).toHaveTransaction({
-            from: ownerJettonWallet.address,
-            to: forwardReceiver.address,
+            from: adminJettonWallet.address,
+            to: admin.address,
             success: true,
             op: 0x7362d09c,  // TransferNotification
         });
         expect(tx.transactions).toHaveTransaction({
-            from: ownerJettonWallet.address,
-            to: forwardReceiver.address,
+            from: adminJettonWallet.address,
+            to: responseDestination.address,
             success: true,
             op: 0xd53276db,  // Excesses
         });
 
-        const jettonData = await ownerJettonWallet.getGetWalletData();
+        const jettonData = await adminJettonWallet.getGetWalletData();
         expect(jettonData.owner.equals(admin.address)).toBeTruthy();
         expect(jettonData.balance).toEqual(nJettonOwnerHas);
         expect(jettonData.master.equals(jettonMasterContract.address)).toBeTruthy();
     });
 
     it("transfer to user", async () => {
-        const tx = await ownerJettonWallet.send(
+        const tx = await adminJettonWallet.send(
             admin.getSender(),
             {
                 value: toNano("1"),
@@ -170,7 +170,7 @@ describe('Jetton', () => {
                 queryId: BigInt(Math.floor(Date.now() / 1000)),
                 amount: nJettonOwnerHas,
                 destination: user.address,
-                responseDestination: forwardReceiver.address,
+                responseDestination: responseDestination.address,
                 forwardAmount: toNano("0.1"),
                 forwardPayload: comment("jetton forward msg"),
                 customPayload: null,
@@ -182,25 +182,25 @@ describe('Jetton', () => {
 
         expect(tx.transactions).toHaveTransaction({
             from: admin.address,
-            to: ownerJettonWallet.address,
+            to: adminJettonWallet.address,
             success: true,
             op: 0xf8a7ea5,  // TokenTransfer
         });
         expect(tx.transactions).toHaveTransaction({
-            from: ownerJettonWallet.address,
+            from: adminJettonWallet.address,
             to: userJettonWallet.address,
             success: true,
             op: 0x178d4519,  // TokenTransferInternal
         });
         expect(tx.transactions).toHaveTransaction({
             from: userJettonWallet.address,
-            to: forwardReceiver.address,
+            to: user.address,
             success: true,
             op: 0x7362d09c,  // TransferNotification
         });
         expect(tx.transactions).toHaveTransaction({
             from: userJettonWallet.address,
-            to: forwardReceiver.address,
+            to: responseDestination.address,
             success: true,
             op: 0xd53276db,  // Excesses
         });
@@ -208,7 +208,7 @@ describe('Jetton', () => {
         const jettonMasterData = await jettonMasterContract.getGetJettonData();
         expect(jettonMasterData.totalSupply).toEqual(nJettonOwnerHas);
 
-        const ownerJettonData = await ownerJettonWallet.getGetWalletData();
+        const ownerJettonData = await adminJettonWallet.getGetWalletData();
         expect(ownerJettonData.balance).toEqual(BigInt(0));
 
         const jettonData = await userJettonWallet.getGetWalletData();
@@ -228,7 +228,7 @@ describe('Jetton', () => {
                 $$type: "Burn",
                 queryId: BigInt(Math.floor(Date.now() / 1000)),
                 amount: nJettonOwnerHas,
-                responseDestination: forwardReceiver.address,
+                responseDestination: responseDestination.address,
                 customPayload: null,
             },
         );
@@ -250,7 +250,7 @@ describe('Jetton', () => {
         });
         expect(tx.transactions).toHaveTransaction({
             from: jettonMasterContract.address,
-            to: forwardReceiver.address,
+            to: responseDestination.address,
             success: true,
             op: 0xd53276db,  // Excesses
         });
