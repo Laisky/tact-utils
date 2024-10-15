@@ -1,4 +1,4 @@
-const codeInsufficientStakedTon: Int = 4001;
-const codeInsufficientStakedJetton: Int = 4002;
-const codeStakeAmountMustBePositive: Int = 4003;
-const codeStakeJettonNotFound: Int = 4004;
+const codeInsufficientStakedTon: Int = 50301;
+const codeInsufficientStakedJetton: Int = 50302;
+const codeStakeAmountMustBePositive: Int = 50303;
+const codeStakeJettonNotFound: Int = 50304;

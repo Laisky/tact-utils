@@ -70,7 +70,7 @@ export async function run(provider: NetworkProvider): Promise<void> {
         {
             $$type: "TokenTransfer",
             queryId: BigInt(Math.floor(Date.now() / 1000)),
-            amount: toNano(randomInt()),
+            amount: toNano("1"),
             destination: receiverAddr,
             responseDestination: receiverAddr,
             customPayload: comment("transfer jetton"),
