@@ -1,13 +1,8 @@
-message(0x70b40d3f) StakeDeployUserWallet {
-    queryId: Int as uint64;
-    owner: Address;
-    responseDestination: Address;
-}
-
 message(0xa576751e) StakeInternal {
     queryId: Int as uint64;
-    // the address of the jetton sender
-    sender: Address;
+    // the address of the jetton wallet
+    jettonWallet: Address;
+    jettonAmount: Int as coins;
     // amount of TON coins to stake
     amount: Int;
     // address to send the response to
@@ -30,7 +25,9 @@ message(0x2c7981f1) StakeNotification {
     queryId: Int as uint64;
     // the amount of TON coins staked
     amount: Int as coins;
+    jettonAmount: Int as coins;
     jetton: StakeJetton?;
+    jettonWallet: Address?;
     sender: Address;
     forwardPayload: Cell?;
 }

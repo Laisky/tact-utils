@@ -61,49 +61,60 @@ trait StakingMaster with Common {
         self.receiveStakeToncoin(msg);
     }
 
-    receive(msg: StakeDeployUserWallet) {
-        self.receiveDeployUserWallet(msg);
+    receive(msg: TransferNotification) {
+        self.receiveTransferNotification(msg);
     }
 
-    receive(msg: StakeInternal) {
-        self.receiveStakeInternal(msg);
-    }
-
-    virtual fun receiveStakeInternal(msg: StakeInternal) {
+    // user transfer jetton to staking master address,
+    // and also set responseDestination to the staking master address.
+    virtual fun receiveTransferNotification(msg: TransferNotification) {
         let ctx = context();
+        nativeThrowUnless(codeForwardPayloadInvalid, msg.forwardPayload != null);
+        nativeThrowUnless(codeStakeAmountMustBePositive, msg.amount >= 0);
+
+        let stakeMsg = StakeJetton.fromCell(msg.forwardPayload!!);
         nativeThrowUnless(codeInflowValueNotSufficient,
-            ctx.value >= msg.amount + self.staticTax);
+            ctx.value >= stakeMsg.tonAmount + stakeMsg.forwardAmount + self.staticTax);
+        nativeThrowUnless(codeStakeAmountMustBePositive, stakeMsg.tonAmount >= 0);
 
-        let stakeWallet = self.getUserWallet(msg.sender);
-        nativeThrowUnless(codeUnauthorized,
-            ctx.sender == contractAddress(stakeWallet));
+        // update stake info
+        self.lockedValue += stakeMsg.tonAmount;
 
-        self.lockedValue += msg.amount;
+        if (stakeMsg.forwardAmount > 0) {
+            send(SendParameters{
+                to: stakeMsg.responseDestination,
+                bounce: false,
+                value: stakeMsg.forwardAmount,
+                body: StakeNotification{
+                    queryId: msg.queryId,
+                    amount: stakeMsg.tonAmount,
+                    jettonAmount: msg.amount,
+                    jetton: stakeMsg,
+                    jettonWallet: sender(),
+                    sender: msg.sender,
+                    forwardPayload: stakeMsg.forwardPayload,
+                }.toCell(),
+            });
+        }
 
-        self.reserveValue(msg.amount);
-        send(SendParameters{
-            to: msg.responseDestination,
-            bounce: false,
-            value: 0,
-            mode: SendRemainingBalance,
-            body: Excesses{
-                queryId: msg.queryId,
-            }.toCell(),
-        });
-    }
+        let userWallet = self.getUserWallet(msg.sender);
 
-    virtual fun receiveDeployUserWallet(msg: StakeDeployUserWallet) {
-        let userStakeWallet = self.getUserWallet(msg.owner);
-
+        // notify stake wallet to update staked info
         self.reserveValue(0);
         send(SendParameters{
-            to: contractAddress(userStakeWallet),
+            to: contractAddress(userWallet),
             bounce: false,
             value: 0,
             mode: SendRemainingBalance,
-            body: msg.toCell(),
-            data: userStakeWallet.data,
-            code: userStakeWallet.code,
+            body: StakeInternal{
+                queryId: msg.queryId,
+                jettonWallet: sender(),
+                jettonAmount: msg.amount,
+                amount: stakeMsg.tonAmount,
+                responseDestination: stakeMsg.responseDestination,
+            }.toCell(),
+            data: userWallet.data,
+            code: userWallet.code,
         });
     }
 
@@ -242,15 +253,34 @@ trait StakingWallet with Common {
         self.receiveRelease(msg);
     }
 
-    receive(msg: TransferNotification) {
-        self.receiveTransferNotification(msg);
+    receive(msg: StakeInternal) {
+        self.receiveStakeInternal(msg);
     }
 
-    receive(msg: StakeDeployUserWallet) {
-        self.receiveDeployUserWallet(msg);
-    }
+    virtual fun receiveStakeInternal(msg: StakeInternal) {
+        let ctx = context();
+        nativeThrowUnless(codeUnauthorized, ctx.sender == self.master);
 
-    virtual fun receiveDeployUserWallet(msg: StakeDeployUserWallet) {
+        // update staked info
+        self.stakedTon += msg.amount;
+        let stakeInfo = self.stakedJettons.get(msg.jettonWallet);
+        if (stakeInfo == null) {
+            self.stakedJettons.set(
+                msg.jettonWallet,
+                StakedJettonInfo{
+                    jettonAmount: msg.jettonAmount,
+                }
+            );
+        } else {
+            self.stakedJettons.set(
+                msg.jettonWallet,
+                StakedJettonInfo{
+                    jettonAmount: stakeInfo!!.jettonAmount + msg.jettonAmount,
+                }
+            );
+        }
+
+        // refund
         self.reserveValue(0);
         send(SendParameters{
             to: msg.responseDestination,
@@ -259,58 +289,6 @@ trait StakingWallet with Common {
             mode: SendRemainingBalance,
             body: Excesses{
                 queryId: msg.queryId,
-            }.toCell(),
-        });
-    }
-
-    // user transfer jetton to staking master address,
-    // and also set responseDestination to the staking master address.
-    virtual fun receiveTransferNotification(msg: TransferNotification) {
-        let ctx = context();
-        nativeThrowUnless(codeForwardPayloadInvalid, msg.forwardPayload != null);
-        nativeThrowUnless(codeStakeAmountMustBePositive, msg.amount >= 0);
-
-        let stakeMsg = StakeJetton.fromCell(msg.forwardPayload!!);
-        nativeThrowUnless(codeInflowValueNotSufficient,
-            ctx.value >= stakeMsg.tonAmount + stakeMsg.forwardAmount + self.staticTax);
-        nativeThrowUnless(codeStakeAmountMustBePositive, stakeMsg.tonAmount >= 0);
-
-        // update staked info
-        self.stakedTon += stakeMsg.tonAmount;
-        self.stakedJettons.set(
-            sender(),
-            StakedJettonInfo{
-                jettonAmount: msg.amount,
-            }
-        );
-
-        if (stakeMsg.forwardAmount > 0) {
-            send(SendParameters{
-                to: stakeMsg.responseDestination,
-                bounce: false,
-                value: stakeMsg.forwardAmount,
-                body: StakeNotification{
-                    queryId: msg.queryId,
-                    amount: stakeMsg.tonAmount,
-                    jetton: stakeMsg,
-                    sender: msg.sender,
-                    forwardPayload: stakeMsg.forwardPayload,
-                }.toCell(),
-            });
-        }
-
-        // transfer stake ton coins to master
-        self.reserveValue(0);
-        send(SendParameters{
-            to: self.master,
-            bounce: false,
-            value: 0,
-            mode: SendRemainingBalance,
-            body: StakeInternal{
-                queryId: msg.queryId,
-                sender: msg.sender,
-                amount: stakeMsg.tonAmount,
-                responseDestination: stakeMsg.responseDestination,
             }.toCell(),
         });
     }
@@ -388,6 +366,8 @@ trait StakingWallet with Common {
                     queryId: msg.queryId,
                     amount: msg.amount,
                     jetton: null,
+                    jettonAmount: 0,
+                    jettonWallet: null,
                     sender: ctx.sender,
                     forwardPayload: msg.forwardPayload,
                 }.toCell(),

@@ -77,25 +77,6 @@ export async function run(provider: NetworkProvider): Promise<void> {
     await provider.waitForDeploy(jettonWalletContract.address, 50);
 
     console.log("-------------------------------------")
-    console.log('>> prepare staking contracts');
-    console.log("-------------------------------------")
-
-    await stakingMasterContract.send(
-        provider.sender(),
-        {
-            value: toNano("1"),
-            bounce: false,
-        },
-        {
-            $$type: "StakeDeployUserWallet",
-            queryId: BigInt(randomInt()),
-            owner: provider.sender().address!!,
-            responseDestination: provider.sender().address!!,
-        }
-    );
-    await provider.waitForDeploy(stakingWalletContract.address, 50);
-
-    console.log("-------------------------------------")
     console.log("staking ton coin...")
     console.log("-------------------------------------")
     await stakingMasterContract.send(
@@ -113,6 +94,8 @@ export async function run(provider: NetworkProvider): Promise<void> {
             forwardPayload: comment("forward_payload"),
         }
     );
+
+    await provider.waitForDeploy(stakingWalletContract.address, 50);
 
     console.log("-------------------------------------")
     console.log("staking jetton...")

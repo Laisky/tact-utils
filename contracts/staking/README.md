@@ -5,7 +5,6 @@
   - [Flows](#flows)
     - [Stake TON coins](#stake-ton-coins)
     - [Stake Jettons and TON coins](#stake-jettons-and-ton-coins)
-      - [Deploy User's Stake Wallet First](#deploy-users-stake-wallet-first)
       - [Stake Jettons](#stake-jettons)
     - [Release](#release)
       - [Release TON coins](#release-ton-coins)
@@ -48,34 +47,11 @@ sequenceDiagram
 
 ### Stake Jettons and TON coins
 
-#### Deploy User's Stake Wallet First
-
-Should deploy user's stake wallet before staking jettons.
-
-> ![](https://s3.laisky.com/uploads/2024/10/stake-deploy.png)
->
-> <https://testnet.tonviewer.com/transaction/f64318117ddbb69bfdb079d30a2ba311139fc5a7aadacbb0169d0f3d64f617c5>
-
-```mermaid
-sequenceDiagram
-    participant A as StakingMaster
-    participant B as UserStakingWallet
-    participant C as User
-
-    C ->>+ A: StakeDeployUserWallet<BR />(0x70b40d3f)
-    A -->>- B: StakeDeployUserWallet<BR />(0x70b40d3f)
-    activate B
-    B -->>- C: Excesses<BR />(0xd53276db)
-
-```
-
 #### Stake Jettons
 
-Please make sure the user's stake wallet is deployed before staking jettons.
-
-> ![](https://s3.laisky.com/uploads/2024/10/stake-jetton.png?v=2)
+> ![](https://s3.laisky.com/uploads/2024/10/stake-jetton.png?v=3)
 >
-> <https://testnet.tonviewer.com/transaction/fefe263284399ce78434b06c14c6d7bcd6fea8f4be73da235fc4450deb51e56d>
+> <https://testnet.tonviewer.com/transaction/8b84cb6025fae09e9c24b9044e716fc7da2715eb261856192162dea2705a2eea>
 
 ```mermaid
 sequenceDiagram
@@ -90,15 +66,15 @@ sequenceDiagram
     activate E
     E -->>+ B: Excesses<BR />(0xd53276db)
     B -->>- C: Excesses<BR />(0xd53276db)
-    E -->>- B: TransferNotification<BR />(0x7362d09c)
+    E -->>- A: TransferNotification<BR />(0x7362d09c)
+    activate A
+    opt
+        A -->> C: StakeNotification<BR />(0x2c7981f1)
+    end
+    A -->>- B: StakeInternal<BR />(0xa576751e)
     activate B
     Note over B: update staked balance
-    opt
-        B -->> C: StakeNotification<BR />(0x2c7981f1)
-    end
-    B -->>- A: StakeInternal<BR />(0xa576751e)
-    activate A
-    A -->>- C: Excesses<BR />(0xd53276db)
+    B -->>- C: Excesses<BR />(0xd53276db)
 ```
 
 ### Release
