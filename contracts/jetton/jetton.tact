@@ -95,6 +95,8 @@ trait JettonMaster with Common {
         self.receiveBurnInternal(msg);
     }
 
+    // this is a TEP-89 standard receiver method,
+    // it's used to provide the wallet address of the specified owner.
     receive(msg: ProvideWalletAddress) {
         self.receiveProvideWalletAddress(msg);
     }

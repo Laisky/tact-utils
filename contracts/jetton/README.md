@@ -6,6 +6,7 @@
     - [Mint](#mint)
     - [Transfer](#transfer)
     - [Burn](#burn)
+    - [ProvideWalletAddress](#providewalletaddress)
 
 [📖 TEP-074 Fungible tokens (Jettons) standard](https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md)
 
@@ -85,4 +86,15 @@ sequenceDiagram
     activate A
     Note over A: update total supply
     A -->>- D: Excesses<BR />(0xd53276db)
+```
+
+### ProvideWalletAddress
+
+```mermaid
+sequenceDiagram
+    participant B as User
+    participant A as JettonMaster
+
+    B ->>+ A: ProvideWalletAddress<BR />(0x2c76b973)
+    A -->>- B: TakeWalletAddress<BR />(0xd1735400)
 ```
