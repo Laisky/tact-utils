@@ -1,5 +1,5 @@
 // =====================================
-// Standard Jettom messages
+// TEP-74: Standard Jettom messages
 //
 // https://github.com/ton-blockchain/TEPs/blob/master/text/0074-jettons-standard.md
 // =====================================
@@ -59,7 +59,32 @@ message(0xd53276db) Excesses {
 }
 
 // -------------------------------------
-// NFT standard messages
+// TEP-89: Discoverable Jettons Wallets
+//
+// https://github.com/ton-blockchain/TEPs/blob/master/text/0089-jetton-wallet-discovery.md
+// -------------------------------------
+
+message(0x2c76b973) ProvideWalletAddress {
+    queryId: Int as uint64;
+    ownerAddress: Address;
+    includeAddress: Bool;
+}
+
+message(0xd1735400) TakeWalletAddress {
+    queryId: Int as uint64;
+    // if it is not possible to generate wallet address
+    // for address in question (for instance wrong workchain)
+    // wallet_address in take_wallet_address
+    // should be equal to addr_none
+    walletAddress: Address;
+    // If include_address is set to True,
+    // take_wallet_address should include
+    // owner_address equal to owner_address in request
+    ownerAddress: Address?;
+}
+
+// -------------------------------------
+// TEP-62: NFT standard messages
 //
 // https://github.com/ton-blockchain/TEPs/blob/master/text/0062-nft-standard.md
 // -------------------------------------

@@ -95,6 +95,10 @@ trait JettonMaster with Common {
         self.receiveBurnInternal(msg);
     }
 
+    receive(msg: ProvideWalletAddress) {
+        self.receiveProvideWalletAddress(msg);
+    }
+
     // this is a TEP-074 standard getter method
     get fun get_jetton_data(): JettonMasterData {
         return self.getJettonData();
@@ -108,6 +112,23 @@ trait JettonMaster with Common {
 
     virtual fun getWalletAddress(owner: Address): Address {
         return contractAddress(self.getJettonWalletContract(owner));
+    }
+
+    virtual fun receiveProvideWalletAddress(msg: ProvideWalletAddress) {
+        let walletAddr = self.get_wallet_address(msg.ownerAddress);
+
+        self.reserveValue(0);
+        send(SendParameters{
+            to: sender(),
+            value: 0,
+            bounce: false,
+            mode: SendRemainingBalance,
+            body: TakeWalletAddress{
+                queryId: msg.queryId,
+                walletAddress: walletAddr,
+                ownerAddress: msg.includeAddress ? msg.ownerAddress : null,
+            }.toCell(),
+        });
     }
 
     virtual fun getJettonWalletContract(owner: Address): StateInit {

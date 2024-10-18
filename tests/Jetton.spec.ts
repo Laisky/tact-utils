@@ -7,8 +7,9 @@ import {
 } from '@ton/sandbox';
 import '@ton/test-utils';
 
-import { JettonMasterTemplate, loadTep64TokenData } from '../build/Sample/tact_JettonMasterTemplate';
+import { JettonMasterTemplate, loadTakeWalletAddress, loadTep64TokenData } from '../build/Sample/tact_JettonMasterTemplate';
 import { JettonWalletTemplate } from '../build/Sample/tact_JettonWalletTemplate';
+import exp from 'constants';
 
 describe('Jetton', () => {
 
@@ -83,7 +84,6 @@ describe('Jetton', () => {
             },
         );
         console.log("deploy master contract");
-        console.log("printTransactionFees");
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
@@ -106,6 +106,80 @@ describe('Jetton', () => {
         expect(jettonContent.content).toEqual("https://s3.laisky.com/uploads/2024/09/jetton-sample.json");
     });
 
+    it("tep-89 includeAddress==true", async () => {
+        const tx = await jettonMasterContract.send(
+            admin.getSender(),
+            {
+                value: toNano("1"),
+                bounce: false,
+            },
+            {
+                $$type: "ProvideWalletAddress",
+                queryId: BigInt(Math.floor(Date.now() / 1000)),
+                ownerAddress: user.address,
+                includeAddress: true
+            },
+        );
+        console.log("tep-89 includeAddress==true");
+        printTransactionFees(tx.transactions);
+
+        expect(tx.transactions).toHaveTransaction({
+            from: admin.address,
+            to: jettonMasterContract.address,
+            success: true,
+            op: 0x2c76b973,  // ProvideWalletAddress
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: jettonMasterContract.address,
+            to: admin.address,
+            success: true,
+            op: 0xd1735400,  // TakeWalletAddress
+        });
+
+        const body = tx.transactions[1].outMessages.get(0)!!.body
+        const resp = loadTakeWalletAddress(body.asSlice());
+
+        expect(resp.ownerAddress!!.equals(user.address)).toBeTruthy();
+        expect(resp.walletAddress!!.equals(userJettonWallet.address)).toBeTruthy();
+    });
+
+    it("tep-89 includeAddress==false", async () => {
+        const tx = await jettonMasterContract.send(
+            admin.getSender(),
+            {
+                value: toNano("1"),
+                bounce: false,
+            },
+            {
+                $$type: "ProvideWalletAddress",
+                queryId: BigInt(Math.floor(Date.now() / 1000)),
+                ownerAddress: user.address,
+                includeAddress: false
+            },
+        );
+        console.log("tep-89 includeAddress==true");
+        printTransactionFees(tx.transactions);
+
+        expect(tx.transactions).toHaveTransaction({
+            from: admin.address,
+            to: jettonMasterContract.address,
+            success: true,
+            op: 0x2c76b973,  // ProvideWalletAddress
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: jettonMasterContract.address,
+            to: admin.address,
+            success: true,
+            op: 0xd1735400,  // TakeWalletAddress
+        });
+
+        const body = tx.transactions[1].outMessages.get(0)!!.body
+        const resp = loadTakeWalletAddress(body.asSlice());
+
+        expect(resp.walletAddress!!.equals(userJettonWallet.address)).toBeTruthy();
+        expect(resp.ownerAddress).toBeNull();
+    });
+
     it("mint to owner", async () => {
         const tx = await jettonMasterContract.send(
             admin.getSender(),
@@ -124,7 +198,6 @@ describe('Jetton', () => {
             },
         );
         console.log("mint to owner");
-        console.log("printTransactionFees");
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
@@ -177,7 +250,6 @@ describe('Jetton', () => {
             },
         );
         console.log("transfer to user");
-        console.log("printTransactionFees");
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
@@ -233,7 +305,6 @@ describe('Jetton', () => {
             },
         );
         console.log("burn from user");
-        console.log("printTransactionFees");
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
@@ -276,7 +347,6 @@ describe('Jetton', () => {
             "withdraw",
         );
         console.log("withdraw by unauthorized user");
-        console.log("printTransactionFees");
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
@@ -299,7 +369,6 @@ describe('Jetton', () => {
             "withdraw",
         );
         console.log("withdraw");
-        console.log("printTransactionFees");
         printTransactionFees(tx.transactions);
 
         expect(tx.transactions).toHaveTransaction({
