@@ -1,3 +1,5 @@
+import "@stdlib/deploy";
+
 import "../common/traits.tact";
 import "../common/messages.tact";
 
@@ -57,5 +59,13 @@ contract HelloWorldV2 with Upgradable {
 
     get fun version(): String {
         return "v2";
+    }
+}
+
+contract HelloWorldVanity with Deployable {
+    owner: Address;
+
+    init(owner: Address, salt: Slice) {
+        self.owner = owner;
     }
 }
