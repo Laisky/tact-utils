@@ -40,7 +40,7 @@ Provides ready-to-use templates for Jetton, NFT, Traits, as well as some commonl
 Install nodejs: <https://github.com/nodesource/distributions>
 
 ```sh
-npm i
+yarn
 ```
 
 ### Build
