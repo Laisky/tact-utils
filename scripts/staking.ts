@@ -6,7 +6,8 @@ import { JettonWalletTemplate } from '../build/Sample/tact_JettonWalletTemplate'
 import { Sample } from '../build/Sample/tact_Sample';
 import { StakeReleaseJettonInfo, StakingMasterTemplate, storeStakeJetton } from '../build/Staking/tact_StakingMasterTemplate';
 import { StakingWalletTemplate } from '../build/Staking/tact_StakingWalletTemplate';
-import { getMasterContract, randomInt } from './utils';
+import { randomInt } from './utils';
+import { SampleMaster } from '../build/Sample/tact_SampleMaster';
 
 
 export async function run(provider: NetworkProvider): Promise<void> {
@@ -21,7 +22,7 @@ export async function run(provider: NetworkProvider): Promise<void> {
             provider.sender().address!!,
         )
     );
-    const sampleMasterContract = await getMasterContract(provider);
+    const sampleMasterContract = await provider.open(await SampleMaster.fromInit());
     const sampleContract = provider.open(
         await Sample.fromInit(
             sampleMasterContract.address,

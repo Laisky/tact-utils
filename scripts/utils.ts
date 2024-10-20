@@ -1,12 +1,10 @@
-import { NetworkProvider } from '@ton/blueprint';
-import { OpenedContract } from '@ton/core';
-import { SampleMaster } from "../build/Sample/tact_SampleMaster";
+import { Address, beginCell } from '@ton/core';
 
-
-export const getMasterContract = async (provider: NetworkProvider): Promise<OpenedContract<SampleMaster>> => {
-    return provider.open(await SampleMaster.fromInit());
-}
 
 export const randomInt = (): number => {
-    return Math.floor(Math.random() * 1000);
+    return Math.floor(Math.random() * 10000);
 }
+
+export const emptyAddress = () => Address.parseRaw('0:0000000000000000000000000000000000000000000000000000000000000000');
+
+export const emptySlice = () => beginCell().endCell().asSlice();
