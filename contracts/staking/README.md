@@ -55,17 +55,16 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
-    participant A as StakingMaster
-    participant E as StakingMasterJettonWallet
-    participant B as UserStakingWallet
     participant C as User
     participant D as UserJettonWallet
+    participant E as StakingMasterJettonWallet
+    participant B as UserStakingWallet
+    participant A as StakingMaster
 
-    C ->>+ D: TokenTransfer<BR />(0xf8a7ea5)
+    C ->>+ D: TokenTransfer<BR />(0xf8a7ea5)<BR />to StakingMaster
     D -->>- E: TokenTransferInternal<BR />(0x178d4519)
     activate E
-    E -->>+ B: Excesses<BR />(0xd53276db)
-    B -->>- C: Excesses<BR />(0xd53276db)
+    E -->>+ C: Excesses<BR />(0xd53276db)
     E -->>- A: TransferNotification<BR />(0x7362d09c)
     activate A
     opt

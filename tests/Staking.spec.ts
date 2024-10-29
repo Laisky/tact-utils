@@ -4,8 +4,8 @@ import '@ton/test-utils';
 
 import { JettonMasterTemplate } from '../build/Sample/tact_JettonMasterTemplate';
 import { JettonWalletTemplate } from '../build/Sample/tact_JettonWalletTemplate';
-import { StakeReleaseJettonInfo, StakingMasterTemplate, storeStakeJetton } from '../build/Staking/tact_StakingMasterTemplate';
-import { StakingWalletTemplate } from '../build/Staking/tact_StakingWalletTemplate';
+import { StakeReleaseJettonInfo, StakingMasterTemplate, storeStakeJetton } from '../build/Sample/tact_StakingMasterTemplate';
+import { StakingWalletTemplate } from '../build/Sample/tact_StakingWalletTemplate';
 
 describe('Staking', () => {
 
@@ -72,43 +72,6 @@ describe('Staking', () => {
         console.log(`stakeJettonWallet: ${stakeJettonWallet.address}`);
         console.log(`userJettonWallet: ${userJettonWallet.address}`);
     });
-
-    // it("prepare staking contracts", async () => {
-    //     const tx = await stakeMasterContract.send(
-    //         admin.getSender(),
-    //         {
-    //             value: toNano("1"),
-    //             bounce: false,
-    //         },
-    //         {
-    //             $$type: "StakeDeployUserWallet",
-    //             queryId: BigInt(Math.ceil(Math.random() * 1000000)),
-    //             owner: user.address,
-    //             responseDestination: admin.address,
-    //         }
-    //     );
-    //     console.log("prepare staking contracts");
-    //     printTransactionFees(tx.transactions);
-
-    //     expect(tx.transactions).toHaveTransaction({
-    //         from: admin.address,
-    //         to: stakeMasterContract.address,
-    //         success: true,
-    //         op: 0x70b40d3f,  // StakeDeployUserWallet
-    //     });
-    //     expect(tx.transactions).toHaveTransaction({
-    //         from: stakeMasterContract.address,
-    //         to: userStakeWallet.address,
-    //         success: true,
-    //         op: 0x70b40d3f,  // StakeDeployUserWallet
-    //     });
-    //     expect(tx.transactions).toHaveTransaction({
-    //         from: userStakeWallet.address,
-    //         to: admin.address,
-    //         success: true,
-    //         op: 0xd53276db,  // Excesses
-    //     });
-    // });
 
     it("prepare jetton", async () => {
         const tx = await jettonMasterContract.send(
@@ -200,7 +163,7 @@ describe('Staking', () => {
                 queryId: BigInt(Math.ceil(Math.random() * 1000000)),
                 amount: toNano("1"),
                 destination: stakeMasterContract.address,
-                responseDestination: userStakeWallet.address,
+                responseDestination: user.address,
                 forwardAmount: toNano("0.5"),
                 forwardPayload: beginCell()
                     .store(storeStakeJetton({
@@ -231,12 +194,6 @@ describe('Staking', () => {
         });
         expect(tx.transactions).toHaveTransaction({
             from: stakeJettonWallet.address,
-            to: userStakeWallet.address,
-            success: true,
-            op: 0xd53276db,  // Excesses
-        });
-        expect(tx.transactions).toHaveTransaction({
-            from: userStakeWallet.address,
             to: user.address,
             success: true,
             op: 0xd53276db,  // Excesses

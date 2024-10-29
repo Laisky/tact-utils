@@ -15,6 +15,8 @@ import "./messages.tact";
 // Contract Templates
 // =====================================
 
+const MinimalGas: Int = ton("0.01");
+
 contract StakingMasterTemplate with StakingMaster {
     owner: Address;
     staticTax: Int as coins = ton("0.001");
@@ -74,7 +76,7 @@ trait StakingMaster with Common {
 
         let stakeMsg = StakeJetton.fromCell(msg.forwardPayload!!);
         nativeThrowUnless(codeInflowValueNotSufficient,
-            ctx.value >= stakeMsg.tonAmount + stakeMsg.forwardAmount + self.staticTax);
+            ctx.value > stakeMsg.tonAmount + stakeMsg.forwardAmount + self.staticTax + MinimalGas);
         nativeThrowUnless(codeStakeAmountMustBePositive, stakeMsg.tonAmount >= 0);
 
         // update stake info
