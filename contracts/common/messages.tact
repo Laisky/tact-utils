@@ -35,7 +35,7 @@ message(0x7362d09c) TransferNotification {
     queryId: Int as uint64;
     // the amount of jettons transferred
     amount: Int as coins;
-    // the address of the jettom sender
+    // the address of the jetton sender
     sender: Address;
     forwardPayload: Cell?;
 }

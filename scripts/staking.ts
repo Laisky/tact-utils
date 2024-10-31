@@ -4,7 +4,11 @@ import { beginCell, comment, Dictionary, fromNano, toNano } from '@ton/core';
 import { JettonMasterTemplate } from '../build/Sample/tact_JettonMasterTemplate';
 import { JettonWalletTemplate } from '../build/Sample/tact_JettonWalletTemplate';
 import { Sample } from '../build/Sample/tact_Sample';
-import { StakeReleaseJettonInfo, StakingMasterTemplate, storeStakeJetton } from '../build/Staking/tact_StakingMasterTemplate';
+import {
+    StakeReleaseJettonInfo,
+    StakingMasterTemplate,
+    storeStakeJetton
+} from '../build/Staking/tact_StakingMasterTemplate';
 import { StakingWalletTemplate } from '../build/Staking/tact_StakingWalletTemplate';
 import { randomInt } from './utils';
 import { SampleMaster } from '../build/Sample/tact_SampleMaster';

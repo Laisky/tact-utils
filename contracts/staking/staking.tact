@@ -82,23 +82,6 @@ trait StakingMaster with Common {
         // update stake info
         self.lockedValue += stakeMsg.tonAmount;
 
-        if (stakeMsg.forwardAmount > 0) {
-            send(SendParameters{
-                to: stakeMsg.responseDestination,
-                bounce: false,
-                value: stakeMsg.forwardAmount,
-                body: StakeNotification{
-                    queryId: msg.queryId,
-                    amount: stakeMsg.tonAmount,
-                    jettonAmount: msg.amount,
-                    jetton: stakeMsg,
-                    jettonWallet: sender(),
-                    sender: msg.sender,
-                    forwardPayload: stakeMsg.forwardPayload,
-                }.toCell(),
-            });
-        }
-
         let userWallet = self.getUserWallet(msg.sender);
 
         // notify stake wallet to update staked info
@@ -114,6 +97,8 @@ trait StakingMaster with Common {
                 jettonAmount: msg.amount,
                 amount: stakeMsg.tonAmount,
                 responseDestination: stakeMsg.responseDestination,
+                forwardAmount: stakeMsg.forwardAmount,
+                forwardPayload: stakeMsg.forwardPayload,
             }.toCell(),
             data: userWallet.data,
             code: userWallet.code,
@@ -133,10 +118,18 @@ trait StakingMaster with Common {
         self.reserveValue(msg.amount);
         send(SendParameters{
             to: contractAddress(userStakeWallet),
-            bounce: false,
+            bounce: true,
             value: 0,
             mode: SendRemainingBalance,
-            body: msg.toCell(),
+            body: StakeInternal{
+                queryId: msg.queryId,
+                jettonWallet: null,
+                jettonAmount: 0,
+                amount: msg.amount,
+                responseDestination: msg.responseDestination,
+                forwardAmount: msg.forwardAmount,
+                forwardPayload: msg.forwardPayload,
+            }.toCell(),
             data: userStakeWallet.data,
             code: userStakeWallet.code,
         });
@@ -194,7 +187,7 @@ trait StakingMaster with Common {
         // forward
         if (msg.forwardAmount > 0) {
             send(SendParameters{
-                to: msg.responseDestination,
+                to: msg.destination,
                 bounce: false,
                 value: msg.forwardAmount,
                 body: StakeReleaseNotification{
@@ -265,21 +258,39 @@ trait StakingWallet with Common {
 
         // update staked info
         self.stakedTon += msg.amount;
-        let stakeInfo = self.stakedJettons.get(msg.jettonWallet);
-        if (stakeInfo == null) {
-            self.stakedJettons.set(
-                msg.jettonWallet,
-                StakedJettonInfo{
-                    jettonAmount: msg.jettonAmount,
-                }
-            );
-        } else {
-            self.stakedJettons.set(
-                msg.jettonWallet,
-                StakedJettonInfo{
-                    jettonAmount: stakeInfo!!.jettonAmount + msg.jettonAmount,
-                }
-            );
+
+        if (msg.jettonWallet != null) {
+            let stakeInfo = self.stakedJettons.get(msg.jettonWallet!!);
+            if (stakeInfo == null) {
+                self.stakedJettons.set(
+                    msg.jettonWallet!!,
+                    StakedJettonInfo{
+                        jettonAmount: msg.jettonAmount,
+                    }
+                );
+            } else {
+                self.stakedJettons.set(
+                    msg.jettonWallet!!,
+                    StakedJettonInfo{
+                        jettonAmount: stakeInfo!!.jettonAmount + msg.jettonAmount,
+                    }
+                );
+            }
+        }
+
+        if (msg.forwardAmount > 0) {
+            send(SendParameters{
+                to: self.owner,
+                bounce: false,
+                value: msg.forwardAmount,
+                body: StakeNotification{
+                    queryId: msg.queryId,
+                    amount: msg.amount,
+                    jettonAmount: msg.amount,
+                    jettonWallet: msg.jettonWallet,
+                    forwardPayload: msg.forwardPayload,
+                }.toCell(),
+            });
         }
 
         // refund
@@ -361,16 +372,14 @@ trait StakingWallet with Common {
 
         if (msg.forwardAmount > 0) {
             send(SendParameters{
-                to: msg.responseDestination,
+                to: self.owner,
                 bounce: false,
                 value: msg.forwardAmount,
                 body: StakeNotification{
                     queryId: msg.queryId,
                     amount: msg.amount,
-                    jetton: null,
                     jettonAmount: 0,
                     jettonWallet: null,
-                    sender: ctx.sender,
                     forwardPayload: msg.forwardPayload,
                 }.toCell(),
             })

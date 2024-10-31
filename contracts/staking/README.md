@@ -35,7 +35,7 @@ sequenceDiagram
 
     C ->>+ A: StakeToncoin<BR />(0x7ac4404c)
     Note over A: add to locked value
-    A -->>- B: StakeToncoin<BR />(0x7ac4404c)
+    A -->>- B: StakeInternal<BR />(0xa576751e)
     activate B
     Note over B: update staked balance
     opt
@@ -67,12 +67,12 @@ sequenceDiagram
     E -->>+ C: Excesses<BR />(0xd53276db)
     E -->>- A: TransferNotification<BR />(0x7362d09c)
     activate A
-    opt
-        A -->> C: StakeNotification<BR />(0x2c7981f1)
-    end
     A -->>- B: StakeInternal<BR />(0xa576751e)
     activate B
     Note over B: update staked balance
+    opt
+        B -->> C: StakeNotification<BR />(0x2c7981f1)
+    end
     B -->>- C: Excesses<BR />(0xd53276db)
 ```
 
@@ -121,7 +121,7 @@ sequenceDiagram
     end
     A -->> C: Excesses<BR />(0xd53276db)
     par
-        A -->>- E: TokenTransfer<BR />(0xf8a7ea5)
+        A -->>- E: TokenTransfer<BR />(0xf8a7ea5)<BR />to User
         activate E
         E -->>- D: TokenTransferInternal<BR />(0x178d4519)
         activate D
