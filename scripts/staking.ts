@@ -26,7 +26,11 @@ export async function run(provider: NetworkProvider): Promise<void> {
             provider.sender().address!!,
         )
     );
-    const sampleMasterContract = await provider.open(await SampleMaster.fromInit());
+    const sampleMasterContract = await provider.open(
+        await SampleMaster.fromInit(
+            provider.sender().address!!,
+        ),
+    );
     const sampleContract = provider.open(
         await Sample.fromInit(
             sampleMasterContract.address,

@@ -8,3 +8,10 @@ message(0xe2b82ed5) MintNftSample {
     queryId: Int as uint64;
     receiver: Address;
 }
+
+message(0x1e8dbe39) VerifyDataSignature {
+    queryId: Int as uint64;
+    data: Cell;
+    signature: Slice;
+    publicKey: Int as uint256;
+}

@@ -676,15 +676,17 @@
     "@ton-community/func-js-bin" "0.4.4-newops.1"
     arg "^5.0.2"
 
-"@ton/blueprint@^0.24.0":
-  version "0.24.0"
-  resolved "https://registry.yarnpkg.com/@ton/blueprint/-/blueprint-0.24.0.tgz#bd3542113329691526234a5528faa49d39d24308"
-  integrity sha512-JTYGfkU8ZiSi2XCPJwea2sA7ijGYBHx9OMcyfj01i1F3zpMR3RhTFl1ETgJjBud+2TTNsAUEjteVZhpjnTx32w==
+"@ton/blueprint@^0.25.0":
+  version "0.25.0"
+  resolved "https://registry.yarnpkg.com/@ton/blueprint/-/blueprint-0.25.0.tgz#47005282d5fb827491f2d4f318983ff7cd0628a2"
+  integrity sha512-ji5VnGNt/j68Zkp9CB5P1JV1AHN99fHdP7+sKtOo+qIlO6c09vSLhTvGcWu70KOYPj27SRGBSQbpWdBreX/OhA==
   dependencies:
     "@tact-lang/compiler" "^1.4.0"
     "@ton-community/func-js" "^0.7.0"
+    "@ton/tolk-js" "^0.6.0"
     "@tonconnect/sdk" "^2.2.0"
     arg "^5.0.2"
+    axios "^1.7.7"
     chalk "^4.1.0"
     dotenv "^16.1.4"
     inquirer "^8.2.5"
@@ -725,6 +727,13 @@
   integrity sha512-fthY8Nrlmy8jnOl/vx6yjeKzzu62ZXMe7ej9Xg7rb4d3511V7dVQK+nw4YLSW5+dD/6WT03dFuNZXnuMYy5fHw==
   dependencies:
     node-inspect-extracted "^2.0.0"
+
+"@ton/tolk-js@^0.6.0":
+  version "0.6.0"
+  resolved "https://registry.yarnpkg.com/@ton/tolk-js/-/tolk-js-0.6.0.tgz#ab904a6d5de47547949dc7b71e25cb1d5af5f1f2"
+  integrity sha512-nyl1fThoyuDTfdHsQ7kZ5rg666Mu0X+uUvAP1zSOM5l3zP0RQdBSBWRLn4IlpfFG+XBXg1sisARgd9yZL+gkhg==
+  dependencies:
+    arg "^5.0.2"
 
 "@ton/ton@^15.1.0":
   version "15.1.0"
@@ -847,10 +856,10 @@
   dependencies:
     "@types/istanbul-lib-report" "*"
 
-"@types/jest@^29.5.13":
-  version "29.5.13"
-  resolved "https://registry.yarnpkg.com/@types/jest/-/jest-29.5.13.tgz#8bc571659f401e6a719a7bf0dbcb8b78c71a8adc"
-  integrity sha512-wd+MVEZCHt23V0/L642O5APvspWply/rGY5BcW4SUETo2UzPU3Z26qr8jC2qxpimI2jjx9h7+2cj2FwIr01bXg==
+"@types/jest@^29.5.14":
+  version "29.5.14"
+  resolved "https://registry.yarnpkg.com/@types/jest/-/jest-29.5.14.tgz#2b910912fa1d6856cadcd0c1f95af7df1d6049e5"
+  integrity sha512-ZN+4sdnLUbo8EVvVc2ao0GFW6oVrQRPn4K2lglySj7APvSrgzxHiNNK99us4WDMi57xxA2yggblIAMNhXOotLQ==
   dependencies:
     expect "^29.0.0"
     pretty-format "^29.0.0"
@@ -867,12 +876,12 @@
   dependencies:
     undici-types "~6.19.2"
 
-"@types/node@^22.7.6":
-  version "22.7.6"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.7.6.tgz#3ec3e2b071e136cd11093c19128405e1d1f92f33"
-  integrity sha512-/d7Rnj0/ExXDMcioS78/kf1lMzYk4BZV8MZGTBKzTGZ6/406ukkbYlIsZmMPhcR5KlkunDHQLrtAVmSq7r+mSw==
+"@types/node@^22.8.7":
+  version "22.8.7"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.8.7.tgz#04ab7a073d95b4a6ee899f235d43f3c320a976f4"
+  integrity sha512-LidcG+2UeYIWcMuMUpBKOnryBWG/rnmOHQR5apjn8myTQcx3rinFRn7DcIFhMnS0PPFSC6OafdIKEad0lj6U0Q==
   dependencies:
-    undici-types "~6.19.2"
+    undici-types "~6.19.8"
 
 "@types/stack-utils@^2.0.0":
   version "2.0.3"
@@ -976,7 +985,7 @@ axios@^0.25.0:
   dependencies:
     follow-redirects "^1.14.7"
 
-axios@^1.6.7:
+axios@^1.6.7, axios@^1.7.7:
   version "1.7.7"
   resolved "https://registry.yarnpkg.com/axios/-/axios-1.7.7.tgz#2f554296f9892a72ac8d8e4c5b79c14a91d0a47f"
   integrity sha512-S4kL7XrjgBmvdGut0sN3yJxqYzrDOnivkBiN0OFs6hLiUam3UPvswUo0kqGyhqUZGEOytHyumEdXsAkgCOUf3Q==
@@ -3058,6 +3067,22 @@ to-regex-range@^5.0.1:
   dependencies:
     is-number "^7.0.0"
 
+ton-crypto-primitives@2.0.0:
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/ton-crypto-primitives/-/ton-crypto-primitives-2.0.0.tgz#e85cd68c0d523f6bdf3f306201a76e51b7e9312e"
+  integrity sha512-K+qKjpS0h9sPW6oExcpxnzuQ7nEgHEiDKwIqE/jWD25o8iFGe3FWj1gKxFNbKE9wwYKc5IV8FwrU+raF0KO5nQ==
+  dependencies:
+    jssha "3.2.0"
+
+ton-crypto@^3.2.0:
+  version "3.2.0"
+  resolved "https://registry.yarnpkg.com/ton-crypto/-/ton-crypto-3.2.0.tgz#cf8cd5410d8f04b04b359f80415b11efb312c60e"
+  integrity sha512-fltdBNQ45gARMuGMEOjPZWPJ5eSql8p3CA0Dj7tPv5lhU5ziT8SxXLAzDraR9HJ8YpjBHLVvYyhMLRiEwxgtMQ==
+  dependencies:
+    jssha "3.2.0"
+    ton-crypto-primitives "2.0.0"
+    tweetnacl "1.0.3"
+
 ton@^13.9.0:
   version "13.9.0"
   resolved "https://registry.yarnpkg.com/ton/-/ton-13.9.0.tgz#801135d4791be15847057d0484927b9b4a257706"
@@ -3145,7 +3170,7 @@ uint8arrays@^3.0.0:
   dependencies:
     multiformats "^9.4.2"
 
-undici-types@~6.19.2:
+undici-types@~6.19.2, undici-types@~6.19.8:
   version "6.19.8"
   resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-6.19.8.tgz#35111c9d1437ab83a7cdc0abae2f26d88eda0a02"
   integrity sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==

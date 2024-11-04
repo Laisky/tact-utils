@@ -18,7 +18,7 @@ contract SampleMaster with Common {
     staticTax: Int as coins = ton("0.001");
     lockedValue: Int as coins = 0;
 
-    init() {
+    init(owner: Address) {
         self.owner = sender();
     }
 
@@ -27,6 +27,22 @@ contract SampleMaster with Common {
             myAddress(),
             owner,
         );
+    }
+
+    receive(msg: VerifyDataSignature) {
+        let ok = checkSignature(msg.data.hash(), msg.signature, msg.publicKey);
+        nativeThrowUnless(codeInvalidSignature, ok);
+
+        // refund
+        send(SendParameters{
+            to: sender(),
+            value: 0,
+            mode: SendRemainingValue,
+            bounce: false,
+            body: Excesses{
+                queryId: msg.queryId,
+            }.toCell(),
+        });
     }
 
     receive(msg: MintJettonSample) {
