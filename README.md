@@ -71,6 +71,7 @@ npx blueprint run --testnet --tonconnect helloworld
 > rather, you should utilize the contracts and code in `jetton` and `common` as per your requirements.
 
 -   [Sample Transaction](https://testnet.tonviewer.com/transaction/5fd248e34b3cb728aff786e990ac45324a2f070d89d9356fdac47fa61444813a)
+-   [Sequence Diagram](https://github.com/Laisky/tact-utils/blob/main/contracts/jetton/README.md)
 
 ```sh
 npx blueprint build sample
@@ -106,6 +107,7 @@ jetton wallet balance: 19000000000
 > rather, you should utilize the contracts and code in `nft` and `common` as per your requirements.
 
 -   [Sample Transaction](https://testnet.tonviewer.com/transaction/aef4b07e37d012e9b8051c1c4f2bcb263194b72d7f874218271595824b62a0bd)
+-   [Sequence Diagram](https://github.com/Laisky/tact-utils/blob/main/contracts/nft/README.md)
 
 ```sh
 npx blueprint build sample
