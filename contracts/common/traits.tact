@@ -93,6 +93,32 @@ trait Common with Txable, Deployable {
         );
     }
 
+    fun verifyMerkleSha256(proof: MerkleProof) {
+        // BUG: will be fixed in https://github.com/tact-lang/tact/issues/1056
+        nativeThrowUnless(codeNotImplemented, true);
+
+        nativeThrowUnless(codeMerkleNotEnoughProof, proof.proofLen > 1);
+
+        let cur = proof.data.hash();
+        let i = 0;
+        while (i < proof.proofLen) {
+            let right = proof.proof.get(i);
+
+            nativeThrowUnless(codeMerkleInvalidNullRight, right != null);
+
+            dump(self.int2hex(cur));
+            dump(self.int2hex(right!!));
+            cur = sha256(beginString()
+                .concat(self.int2hex(cur))
+                .concat(self.int2hex(right!!))
+                .toString());
+
+            i += 1;
+        }
+
+        nativeThrowUnless(codeMerkleInvalidRoot, cur == proof.root);
+    }
+
     // can be used to reserve the balance for SendRemainingBalance.
     // default to reserve the balance before current transaction plus staticTax.
     //
@@ -114,7 +140,54 @@ trait Common with Txable, Deployable {
             }
         );
     }
-}
+
+    fun int2hex(n: Int): String {
+        let store: map<Int, Int> = emptyMap();
+        let nextPos = 63; // Fixed 64 chars (32 bytes) output
+
+        // Convert to positive BigInt
+        let num = n;
+        if (num < 0) {
+            num = -num;
+        }
+
+        // Calculate hex digits
+        while (num > 0) {
+            let remainder = num % 16;
+            store.set(nextPos, remainder);
+            nextPos -= 1;
+            num = num / 16;
+        }
+
+        // Pad with zeros
+        while (nextPos >= 0) {
+            store.set(nextPos, 0);
+            nextPos -= 1;
+        }
+
+        // Build hex string
+        let result = beginString();
+        let i = 0;
+        while (i < 64) {
+            let v = store.get(i) != null ? store.get(i)!! : 0;
+            if (v < 10) {
+                result.append(v.toString());
+            } else {
+                // Use ASCII values for A-F
+                result.append(
+                    (v == 10 ? "a" :
+                        v == 11 ? "b" :
+                        v == 12 ? "c" :
+                        v == 13 ? "d" :
+                        v == 14 ? "e" : "f")
+                );
+            }
+
+            i += 1;
+        }
+
+        return result.toString();
+    }}
 
 @name(set_code)
 native setCode(code: Cell);

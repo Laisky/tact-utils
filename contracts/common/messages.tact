@@ -179,3 +179,10 @@ message(0x112a9509) UpgradeContract {
     data: Cell?;
     responseDestination: Address;
 }
+
+struct MerkleProof {
+    data: Cell;
+    root: Int as uint256;
+    proof: map<Int as uint32, Int as uint256>;
+    proofLen: Int as uint32;
+}

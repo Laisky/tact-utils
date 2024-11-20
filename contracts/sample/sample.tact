@@ -29,6 +29,38 @@ contract SampleMaster with Common {
         );
     }
 
+    get fun testIntHash(data: Cell): String {
+        return self.int2hex(data.hash());
+    }
+
+    get fun testStrHash(v1: String, v2: String): String {
+        let hashed = beginString()
+            .concat(v1)
+            .concat(v2)
+            .toString();
+
+        // return hashed;  // Can accurately return a 128-bit string.
+        return sha256(hashed).toString();  // not equal to sha256(v1+v2)
+
+        // return self.int2hex(hashed);
+    }
+
+    get fun testVerifyMerkleProof(msg: VerifyMerkleProof) {
+        self.verifyMerkleSha256(msg.proof);
+
+        // refund
+        // self.reserveValue(0);
+        // send(SendParameters{
+        //     to: sender(),
+        //     value: 0,
+        //     mode: SendRemainingBalance,
+        //     bounce: false,
+        //     body: Excesses{
+        //         queryId: msg.queryId,
+        //     }.toCell(),
+        // });
+    }
+
     receive(msg: VerifyDataSignature) {
         let ok = checkSignature(msg.data.hash(), msg.signature, msg.publicKey);
         nativeThrowUnless(codeInvalidSignature, ok);
@@ -92,6 +124,10 @@ contract SampleMaster with Common {
             data: sampleContract.data,
             code: sampleContract.code,
         });
+    }
+
+    get fun testInt2hex(n: Int): String {
+        return self.int2hex(n);
     }
 }
 
