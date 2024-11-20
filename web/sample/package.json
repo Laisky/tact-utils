@@ -14,17 +14,17 @@
     "license": "ISC",
     "description": "",
     "dependencies": {
-        "@ton/ton": "^15.0.0",
+        "@ton/ton": "^15.1.0",
         "@tonconnect/ui": "^2.0.9",
-        "@vitejs/plugin-react": "^4.3.1",
+        "@vitejs/plugin-react": "^4.3.3",
         "buffer": "^6.0.3",
-        "vite": "^5.4.1"
+        "vite": "^5.4.11"
     },
     "devDependencies": {
-        "@babel/core": "^7.25.2",
-        "@babel/preset-env": "^7.25.4",
-        "babel-loader": "^9.1.3",
+        "@babel/core": "^7.26.0",
+        "@babel/preset-env": "^7.26.0",
+        "babel-loader": "^9.2.1",
         "ts-loader": "^9.5.1",
-        "typescript": "^5.6.2"
+        "typescript": "^5.6.3"
     }
 }
