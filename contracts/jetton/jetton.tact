@@ -365,7 +365,7 @@ trait JettonWallet with Common {
                 to: self.owner,
                 value: msg.forwardAmount,
                 bounce: false,
-                // mode: SendIgnoreErrors,
+                mode: SendIgnoreErrors,
                 body: TransferNotification{
                     queryId: msg.queryId,
                     amount: msg.amount,

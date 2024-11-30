@@ -67,7 +67,7 @@ trait Common with Txable, Deployable {
         self.receiveWithdraw();
     }
 
-    get fun balance(): Int {
+    get fun tonBalance(): Int {
         return myBalance();
     }
 

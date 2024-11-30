@@ -20,7 +20,7 @@ describe('Jetton', () => {
     let jettonMasterContract: SandboxContract<JettonMasterTemplate>;
     let adminJettonWallet: SandboxContract<JettonWalletTemplate>;
     let userJettonWallet: SandboxContract<JettonWalletTemplate>;
-    let nJettonOwnerHas: bigint = toNano(Math.random() * 100);
+    let nJettonOwnerHas: bigint = toNano(Math.random() * 1000);
 
     beforeAll(async () => {
         blockchain = await Blockchain.create();
@@ -289,6 +289,122 @@ describe('Jetton', () => {
         expect(jettonData.master.equals(jettonMasterContract.address)).toBeTruthy();
     });
 
+    it("user transfer back to admin", async () => {
+        const tx = await userJettonWallet.send(
+            user.getSender(),
+            {
+                value: toNano("1"),
+                bounce: false,
+            },
+            {
+                $$type: "TokenTransfer",
+                queryId: BigInt(Math.floor(Date.now() / 1000)),
+                amount: toNano("10"),
+                destination: admin.address,
+                responseDestination: responseDestination.address,
+                forwardAmount: toNano("0.1"),
+                forwardPayload: comment("jetton forward msg"),
+                customPayload: null,
+            },
+        );
+        console.log("user transfer back to admin");
+        printTransactionFees(tx.transactions);
+
+        expect(tx.transactions).toHaveTransaction({
+            from: user.address,
+            to: userJettonWallet.address,
+            success: true,
+            op: 0xf8a7ea5,  // TokenTransfer
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: userJettonWallet.address,
+            to: adminJettonWallet.address,
+            success: true,
+            op: 0x178d4519,  // TokenTransferInternal
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: adminJettonWallet.address,
+            to: admin.address,
+            success: true,
+            op: 0x7362d09c,  // TransferNotification
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: adminJettonWallet.address,
+            to: responseDestination.address,
+            success: true,
+            op: 0xd53276db,  // Excesses
+        });
+
+        const jettonMasterData = await jettonMasterContract.getGetJettonData();
+        expect(jettonMasterData.totalSupply).toEqual(nJettonOwnerHas);
+
+        const ownerJettonData = await adminJettonWallet.getGetWalletData();
+        expect(ownerJettonData.balance).toEqual(toNano("10"));
+
+        const jettonData = await userJettonWallet.getGetWalletData();
+        expect(jettonData.owner.equals(user.address)).toBeTruthy();
+        expect(jettonData.balance).toEqual(nJettonOwnerHas - toNano("10"));
+        expect(jettonData.master.equals(jettonMasterContract.address)).toBeTruthy();
+    });
+
+    it("admin transfer to user with tiny forward ton", async () => {
+        const tx = await adminJettonWallet.send(
+            admin.getSender(),
+            {
+                value: toNano("1"),
+                bounce: false,
+            },
+            {
+                $$type: "TokenTransfer",
+                queryId: BigInt(Math.floor(Date.now() / 1000)),
+                amount: toNano("10"),
+                destination: user.address,
+                responseDestination: responseDestination.address,
+                forwardAmount: BigInt("1"),  // insufficient forward ton
+                forwardPayload: comment("jetton forward msg"),
+                customPayload: null,
+            },
+        );
+        console.log("admin transfer to user with tiny forward ton");
+        printTransactionFees(tx.transactions);
+
+        expect(tx.transactions).toHaveTransaction({
+            from: admin.address,
+            to: adminJettonWallet.address,
+            success: true,
+            op: 0xf8a7ea5,  // TokenTransfer
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: adminJettonWallet.address,
+            to: userJettonWallet.address,
+            success: true,
+            op: 0x178d4519,  // TokenTransferInternal
+        });
+        expect(tx.transactions).not.toHaveTransaction({
+            from: userJettonWallet.address,
+            to: user.address,
+            success: true,
+            op: 0x7362d09c,  // TransferNotification
+        });
+        expect(tx.transactions).toHaveTransaction({
+            from: userJettonWallet.address,
+            to: responseDestination.address,
+            success: true,
+            op: 0xd53276db,  // Excesses
+        });
+
+        const jettonMasterData = await jettonMasterContract.getGetJettonData();
+        expect(jettonMasterData.totalSupply).toEqual(nJettonOwnerHas);
+
+        const ownerJettonData = await adminJettonWallet.getGetWalletData();
+        expect(ownerJettonData.balance).toEqual(toNano("0"));
+
+        const jettonData = await userJettonWallet.getGetWalletData();
+        expect(jettonData.owner.equals(user.address)).toBeTruthy();
+        expect(jettonData.balance).toEqual(nJettonOwnerHas);
+        expect(jettonData.master.equals(jettonMasterContract.address)).toBeTruthy();
+    });
+
     it("burn from user", async () => {
         const tx = await userJettonWallet.send(
             user.getSender(),
@@ -327,7 +443,7 @@ describe('Jetton', () => {
         });
 
         const jettonMasterData = await jettonMasterContract.getGetJettonData();
-        expect(jettonMasterData.totalSupply).toEqual(BigInt(0));
+        expect(jettonMasterData.totalSupply).toEqual(BigInt("0"));
 
         const jettonData = await userJettonWallet.getGetWalletData();
         expect(jettonData.owner.equals(user.address)).toBeTruthy();
@@ -336,7 +452,7 @@ describe('Jetton', () => {
     });
 
     it("withdraw by unauthorized user", async () => {
-        const balanceBefore = await userJettonWallet.getBalance();
+        const balanceBefore = await userJettonWallet.getTonBalance();
 
         const tx = await userJettonWallet.send(
             admin.getSender(),
@@ -355,7 +471,7 @@ describe('Jetton', () => {
             success: false,
         });
 
-        const balance = await userJettonWallet.getBalance();
+        const balance = await userJettonWallet.getTonBalance();
         expect(balance).toEqual(balanceBefore);
     });
 
@@ -383,7 +499,7 @@ describe('Jetton', () => {
             op: 0xd53276db,  // Excesses
         });
 
-        const balance = await userJettonWallet.getBalance();
+        const balance = await userJettonWallet.getTonBalance();
         expect(balance).toEqual(toNano("0"));
     });
 });
