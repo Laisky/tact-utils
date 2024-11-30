@@ -1,3 +1,5 @@
+import "./polyfills";
+
 import { TonConnectUI } from '@tonconnect/ui';
 import { toNano, comment, beginCell, Address } from '@ton/core';
 import { storeMintNftSample, storeMintJettonSample } from "./tact_build/Sample/tact_SampleMaster";
