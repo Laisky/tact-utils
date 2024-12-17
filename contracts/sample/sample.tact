@@ -39,10 +39,7 @@ contract SampleMaster with Common {
             .concat(v2)
             .toString();
 
-        // return hashed;  // Can accurately return a 128-bit string.
-        return sha256(hashed).toString();  // not equal to sha256(v1+v2)
-
-        // return self.int2hex(hashed);
+        return self.int2hex(self.fullSha256(hashed));
     }
 
     get fun testVerifyMerkleProof(msg: VerifyMerkleProof) {

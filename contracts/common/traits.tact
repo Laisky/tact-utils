@@ -3,6 +3,14 @@ import "@stdlib/deploy";
 
 import "./errcodes.tact";
 import "./messages.tact";
+import "./sha256.fc";
+
+// The native sha256 in Tact truncates the input, computing only the first 128 bytes.
+// Using fullSha256 allows computing the complete sha256 value.
+//
+// https://github.com/tact-lang/tact/issues/1056
+@name(sha256)
+native fullSha256(data: String): Int;
 
 trait Txable {
     owner: Address;
@@ -93,10 +101,11 @@ trait Common with Txable, Deployable {
         );
     }
 
-    fun verifyMerkleSha256(proof: MerkleProof) {
-        // BUG: will be fixed in https://github.com/tact-lang/tact/issues/1056
-        nativeThrowUnless(codeNotImplemented, true);
+    fun fullSha256(data: String): Int {
+        return fullSha256(data);
+    }
 
+    fun verifyMerkleSha256(proof: MerkleProof) {
         nativeThrowUnless(codeMerkleNotEnoughProof, proof.proofLen > 1);
 
         let cur = proof.data.hash();
@@ -106,9 +115,7 @@ trait Common with Txable, Deployable {
 
             nativeThrowUnless(codeMerkleInvalidNullRight, right != null);
 
-            dump(self.int2hex(cur));
-            dump(self.int2hex(right!!));
-            cur = sha256(beginString()
+            cur = self.fullSha256(beginString()
                 .concat(self.int2hex(cur))
                 .concat(self.int2hex(right!!))
                 .toString());

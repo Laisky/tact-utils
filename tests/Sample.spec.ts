@@ -127,20 +127,17 @@ describe('Jetton', () => {
         expect(gotHash).toEqual(expectHash);
     });
 
-    // it("hash string onchain", async () => {
-    //     // BUG: will be fixed in https://github.com/tact-lang/tact/issues/1056
-    //     const v1 = "4d2377d0bc3befe8a721e96b13e22d3b4e557024353e69e2b5d0f315ad49aa05";
-    //     const v2 = "551f6c3e8d7ae7d9b3ac53bca9b6f82cff322fb16113820776d14a3f93b93951";
-    //     // const v1 = "4d2377d0bc3befe8a721e96b13e22d3b4e557024353e69e2b5d0f315ad49aa0";
-    //     // const v2 = "551f6c3e8d7ae7d9b3ac53bca9b6f82cff322fb16113820776d14a3f93b9395";
+    it("hash string onchain", async () => {
+        const v1 = "4d2377d0bc3befe8a721e96b13e22d3b4e557024353e69e2b5d0f315ad49aa05";
+        const v2 = "551f6c3e8d7ae7d9b3ac53bca9b6f82cff322fb16113820776d14a3f93b93951";
 
-    //     const gotHash = await sampleMaster.getTestStrHash(v1, v2);
-    //     const expectHash = (await sha256(v1 + v2)).toString('hex');
+        const gotHash = await sampleMaster.getTestStrHash(v1, v2);
+        const expectHash = (await sha256(v1 + v2)).toString('hex');
 
-    //     console.log(BigInt("0x"+(await sha256(v1 + v2)).toString('hex')));
+        console.log(BigInt("0x"+(await sha256(v1 + v2)).toString('hex')));
 
-    //     expect(gotHash).toEqual(expectHash);
-    // });
+        expect(gotHash).toEqual(expectHash);
+    });
 
     const generateMerkleProof = async (data: Cell) => {
         const d0 = comment("hello");
@@ -180,27 +177,27 @@ describe('Jetton', () => {
         expect(hash).toEqual(root);
     });
 
-    // it("merkle onchain", async () => {
-    //     const data = comment('abc');
-    //     const { proofs, root } = await generateMerkleProof(data);
+    it("merkle onchain", async () => {
+        const data = comment('abc');
+        const { proofs, root } = await generateMerkleProof(data);
 
-    //     let proof = Dictionary.empty<number, bigint>();
-    //     for (let i = 0; i < proofs.length; i++) {
-    //         proof = proof.set(i, BigInt(`0x${proofs[i]}`));
-    //     }
+        let proof = Dictionary.empty<number, bigint>();
+        for (let i = 0; i < proofs.length; i++) {
+            proof = proof.set(i, BigInt(`0x${proofs[i]}`));
+        }
 
-    //     await sampleMaster.getTestVerifyMerkleProof(
-    //         {
-    //             $$type: "VerifyMerkleProof",
-    //             queryId: BigInt(Math.floor(Date.now() / 1000)),
-    //             proof: {
-    //                 $$type: "MerkleProof",
-    //                 data: data,
-    //                 root: BigInt(`0x${root}`),
-    //                 proof: proof,
-    //                 proofLen: BigInt(proofs.length),
-    //             },
-    //         }
-    //     );
-    // });
+        await sampleMaster.getTestVerifyMerkleProof(
+            {
+                $$type: "VerifyMerkleProof",
+                queryId: BigInt(Math.floor(Date.now() / 1000)),
+                proof: {
+                    $$type: "MerkleProof",
+                    data: data,
+                    root: BigInt(`0x${root}`),
+                    proof: proof,
+                    proofLen: BigInt(proofs.length),
+                },
+            }
+        );
+    });
 });
