@@ -18,10 +18,10 @@
         "test": "jest --verbose"
     },
     "devDependencies": {
-        "@ton/blueprint": "^0.26.0",
+        "@ton/blueprint": "^0.27.0",
         "@ton/core": "~0",
         "@ton/crypto": "^3.3.0",
-        "@ton/sandbox": "^0.22.0",
+        "@ton/sandbox": "^0.23.0",
         "@ton/test-utils": "^0.4.2",
         "@ton/ton": "^15.1.0",
         "@types/jest": "^29.5.14",
