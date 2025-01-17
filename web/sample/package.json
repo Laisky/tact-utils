@@ -15,7 +15,7 @@
     "description": "",
     "dependencies": {
         "@ton/ton": "^15.1.0",
-        "@tonconnect/ui": "^2.0.9",
+        "@tonconnect/ui": "^2.0.11",
         "@vitejs/plugin-react": "^4.3.4",
         "browserify-zlib": "^0.2.0",
         "buffer": "^6.0.3",
@@ -25,13 +25,13 @@
         "stream": "^0.0.3",
         "tweetnacl": "^1.0.3",
         "tweetnacl-util": "^0.15.1",
-        "vite": "^6.0.1"
+        "vite": "^6.0.7"
     },
     "devDependencies": {
         "@babel/core": "^7.26.0",
         "@babel/preset-env": "^7.26.0",
         "babel-loader": "^9.2.1",
-        "ts-loader": "^9.5.1",
-        "typescript": "^5.7.2"
+        "ts-loader": "^9.5.2",
+        "typescript": "^5.7.3"
     }
 }
