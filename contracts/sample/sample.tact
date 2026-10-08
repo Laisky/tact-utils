@@ -19,7 +19,7 @@ contract SampleMaster with Common {
     lockedValue: Int as coins = 0;
 
     init(owner: Address) {
-        self.owner = sender();
+        self.owner = owner;
     }
 
     fun getSample(owner: Address): StateInit {
