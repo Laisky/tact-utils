@@ -142,7 +142,7 @@ trait Common with Txable, Deployable {
     // can be used to reserve the balance for SendRemainingBalance.
     // default to reserve the balance before current transaction plus staticTax.
     //
-    // if lockedValue has been increased, the delta should be positive.
+    // delta is an additional reserve adjustment; updated lockedValue is already included.
     virtual fun reserveValue(delta: Int) {
         let ctx = context();
         let val = max((myBalance() - ctx.value) + self.staticTax, self.lockedValue + self.staticTax);
