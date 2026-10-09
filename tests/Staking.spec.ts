@@ -100,7 +100,7 @@ describe('Staking', () => {
             from: jettonMasterContract.address,
             to: userJettonWallet.address,
             success: true,
-            op: 0x178d4519,  // TokenTransferInternal
+            op: 0x4d505250,  // MintPrepare
         });
         expect(tx.transactions).toHaveTransaction({
             from: userJettonWallet.address,
@@ -109,7 +109,7 @@ describe('Staking', () => {
             op: 0x7362d09c,  // TransferNotification
         });
         expect(tx.transactions).toHaveTransaction({
-            from: userJettonWallet.address,
+            from: jettonMasterContract.address,
             to: admin.address,
             success: true,
             op: 0xd53276db,  // Excesses

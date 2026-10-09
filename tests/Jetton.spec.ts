@@ -210,7 +210,7 @@ describe('Jetton', () => {
             from: jettonMasterContract.address,
             to: adminJettonWallet.address,
             success: true,
-            op: 0x178d4519,  // TokenTransferInternal
+            op: 0x4d505250,  // MintPrepare
         });
         expect(tx.transactions).toHaveTransaction({
             from: adminJettonWallet.address,
@@ -219,7 +219,7 @@ describe('Jetton', () => {
             op: 0x7362d09c,  // TransferNotification
         });
         expect(tx.transactions).toHaveTransaction({
-            from: adminJettonWallet.address,
+            from: jettonMasterContract.address,
             to: responseDestination.address,
             success: true,
             op: 0xd53276db,  // Excesses
