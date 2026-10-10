@@ -20,10 +20,11 @@ describe('Jetton', () => {
     let jettonMasterContract: SandboxContract<JettonMasterTemplate>;
     let adminJettonWallet: SandboxContract<JettonWalletTemplate>;
     let userJettonWallet: SandboxContract<JettonWalletTemplate>;
-    let nJettonOwnerHas: bigint = toNano(Math.random() * 1000);
+    let nJettonOwnerHas: bigint = toNano("1000");
 
     beforeAll(async () => {
         blockchain = await Blockchain.create();
+        blockchain.now = 1700000000;
         admin = await blockchain.treasury('admin');
         user = await blockchain.treasury('user');
         responseDestination = await blockchain.treasury('responseDestination');
@@ -453,6 +454,8 @@ describe('Jetton', () => {
 
     it("withdraw by unauthorized user", async () => {
         const balanceBefore = await userJettonWallet.getTonBalance();
+        // Rejected authorization still pays native storage fees after time elapses.
+        blockchain.now = blockchain.now! + 3600;
 
         const tx = await userJettonWallet.send(
             admin.getSender(),
@@ -472,7 +475,16 @@ describe('Jetton', () => {
         });
 
         const balance = await userJettonWallet.getTonBalance();
-        expect(balance).toEqual(balanceBefore);
+        const walletTransaction = tx.transactions.find(
+            (transaction) => transaction.inMessage?.info.type === 'internal'
+                && transaction.inMessage.info.dest.equals(userJettonWallet.address)
+        );
+        if (walletTransaction?.description.type !== 'generic') {
+            throw new Error('Expected native wallet transaction');
+        }
+        const storageFees = walletTransaction.description.storagePhase?.storageFeesCollected ?? 0n;
+        expect(storageFees).toBeGreaterThan(0n);
+        expect(balance).toEqual(balanceBefore - storageFees);
     });
 
     it("user withdraw", async () => {
