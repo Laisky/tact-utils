@@ -29,6 +29,7 @@ describe('Direct TON stake reservation', () => {
     ] as const) {
         it(`returns excess without an uncredited stake: funding=${funding}, prefund=${prefund}`, async () => {
             const chain = await Blockchain.create();
+            chain.now = 1700000000;
             const admin = await chain.treasury('issuer');
             const user = await chain.treasury('staker');
             const master = chain.openContract(await StakingMasterTemplate.fromInit(admin.address));
@@ -44,6 +45,7 @@ describe('Direct TON stake reservation', () => {
                 expect((await chain.getContract(master.address)).balance).toBeGreaterThan(toNano('0.9'));
             }
             const preMaster = (await chain.getContract(master.address)).balance;
+            if (prefund !== '0') chain.now = chain.now! + 3600;
             const accounts = [admin, user, master, wallet];
             const before = await balances(chain, accounts);
             const userBefore = (await chain.getContract(user.address)).balance;
@@ -68,9 +70,21 @@ describe('Direct TON stake reservation', () => {
             expect((await wallet.getStakedInfo()).stakedTonAmount).toBe(toNano('0.5'));
             expect(before - (await balances(chain, accounts))).toBe(fees(result.transactions));
             const retained = (await chain.getContract(master.address)).balance;
-            // The reserve helper preserves existing balance plus tax or credited principal plus tax.
+            const stakeTransaction = result.transactions.find(
+                (transaction) => transaction.inMessage?.info.type === 'internal'
+                    && transaction.inMessage.info.src.equals(user.address)
+                    && transaction.inMessage.info.dest.equals(master.address),
+            );
+            if (stakeTransaction?.description.type !== 'generic') {
+                throw new Error('Expected native stake transaction');
+            }
+            const storageFees = stakeTransaction.description.storagePhase?.storageFeesCollected ?? 0n;
+            if (prefund !== '0') expect(storageFees).toBeGreaterThan(0n);
+            // Existing balance is protected after native storage fees, plus tax.
+            const protectedBalance = preMaster - storageFees;
             const expected =
-                preMaster + toNano('0.001') > toNano('0.501') ? preMaster + toNano('0.001') : toNano('0.501');
+                protectedBalance + toNano('0.001') > toNano('0.501')
+                    ? protectedBalance + toNano('0.001') : toNano('0.501');
             expect(retained).toBe(expected);
             const paid = userBefore - (await chain.getContract(user.address)).balance;
             expect(paid).toBeLessThan(toNano('0.55'));
