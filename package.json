@@ -15,7 +15,8 @@
     "scripts": {
         "start": "blueprint run",
         "build": "blueprint build",
-        "test": "jest --verbose"
+        "test": "jest --verbose",
+        "test:dependencies": "node --test tests/dependency-patches.test.cjs web/sample/tests/dependency-patches.test.cjs"
     },
     "devDependencies": {
         "@ton/blueprint": "^0.27.0",
