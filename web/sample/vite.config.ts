@@ -16,22 +16,29 @@ export default defineConfig({
     resolve: {
         alias: {
             '@': path.resolve(__dirname, 'src'),
-            'buffer': 'buffer/'
+            buffer: 'buffer',
+            process: 'process/browser',
+            stream: 'stream-browserify',
+            zlib: 'browserify-zlib',
+            'tweetnacl-util': 'tweetnacl-util/nacl-util.js'
         },
         extensions: ['.ts', '.tsx', '.js']
     },
+    define: {
+        'process.env': {},
+        global: 'globalThis'
+    },
     build: {
         outDir: 'dist',
+        commonjsOptions: {
+            transformMixedEsModules: true
+        },
         rollupOptions: {
             input: './index.ts',
             output: {
                 entryFileNames: 'bundle.js'
             }
         }
-    },
-    define: {
-        global: "window",
-        'process.env': {}
     },
     server: {
         port: 3000,

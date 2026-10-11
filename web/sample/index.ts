@@ -1,8 +1,10 @@
+import "./polyfills";
+
 import { TonConnectUI } from '@tonconnect/ui';
 import { toNano, comment, beginCell, Address } from '@ton/core';
 import { storeMintNftSample, storeMintJettonSample } from "./tact_build/Sample/tact_SampleMaster";
 
-const SampleMasterContractAddress = "kQBKfUb1Be_J5y09iXlEzGy2xH19RnHiW9ldwDOyAcgudJNR";
+const SampleMasterContractAddress = "0QAtWTWntd3uwIeGCBYGn4Hk69KZYI9BxRNhUBOdCFZIm8tk";
 
 const tonConnectUI = new TonConnectUI({
     manifestUrl: 'https://s3.laisky.com/uploads/2024/09/connect-manifest-v2.json',

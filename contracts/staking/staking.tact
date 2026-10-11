@@ -115,7 +115,7 @@ trait StakingMaster with Common {
 
         let userStakeWallet = self.getUserWallet(sender());
 
-        self.reserveValue(msg.amount);
+        self.reserveValue(0);
         send(SendParameters{
             to: contractAddress(userStakeWallet),
             bounce: true,

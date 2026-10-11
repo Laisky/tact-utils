@@ -663,26 +663,40 @@
   resolved "https://registry.yarnpkg.com/@tact-lang/opcode/-/opcode-0.0.16.tgz#cc9e4117ce706d8bb6e054a520bab719f70adf96"
   integrity sha512-YJTUjoDOy+e+FHHppJiF+uWJ2IMjVknB9VQ5n78pknCE129DazCb/nFXnw0wVRDVcn8Tn59ky+pmjiQjQOjEbw==
 
-"@ton-community/func-js-bin@0.4.4-newops.1":
-  version "0.4.4-newops.1"
-  resolved "https://registry.yarnpkg.com/@ton-community/func-js-bin/-/func-js-bin-0.4.4-newops.1.tgz#d21cd01da8abf29cb301969f782c01b0852fdac5"
-  integrity sha512-TV4t6XhmItq4t+wv4pV30yEwb+YvdmsKo4Ig4B0zp4PLdI0r9iZHz4y5bBHcXmDQDRqulXzK6kTgfHvs2CIsaQ==
-
-"@ton-community/func-js@^0.7.0":
-  version "0.7.0"
-  resolved "https://registry.yarnpkg.com/@ton-community/func-js/-/func-js-0.7.0.tgz#8bb334f4649b30b6d1e13ef1a3daa5670a0a8404"
-  integrity sha512-VYJsv6Pqz6+qh3HlZWReBG5W9RXutAdIFYDqmblPSCXfjBhx/QjON/3WoppzUVrqQQdD0BVIh4PR+xRHRCBNhw==
+"@ton-api/client@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@ton-api/client/-/client-0.2.0.tgz#82ca5cfba84919fd5010260d5695496af5b4e785"
+  integrity sha512-m/T8Nroq4rghUcg72Bbt2He9x5g9RlrP4F9rs7J4DVYLMHnKQTlKDo9JMD/feLXtHxOMh/YGJNcb+BGBkNbNug==
   dependencies:
-    "@ton-community/func-js-bin" "0.4.4-newops.1"
+    core-js-pure "^3.38.0"
+
+"@ton-api/ton-adapter@^0.2.0":
+  version "0.2.0"
+  resolved "https://registry.yarnpkg.com/@ton-api/ton-adapter/-/ton-adapter-0.2.0.tgz#d118ed8fe683c670907b0d94d52ee3847b8050f4"
+  integrity sha512-0l1Y7pgi6/N6HOqRAdgOemDssYB4sXKtHWSKgm+cDL754ZMP3gsj/6pEmgOo/H7+itsKf4t0UqOU0q2JuqG/zw==
+
+"@ton-community/func-js-bin@0.4.6":
+  version "0.4.6"
+  resolved "https://registry.yarnpkg.com/@ton-community/func-js-bin/-/func-js-bin-0.4.6.tgz#cf7f23c7f24ddc3b98ce02c04f494d258a998318"
+  integrity sha512-nUH0YO4nQA4oDcBfqzZ62HG2nWTd414kEDnXmvr2uMSUxJH2KW3Nsc1i1Q/aXy8ZkxqChj1Z2/hT4YcJuEzUZA==
+
+"@ton-community/func-js@^0.9.0":
+  version "0.9.0"
+  resolved "https://registry.yarnpkg.com/@ton-community/func-js/-/func-js-0.9.0.tgz#995f4426afcd3d334b225b06d67852b3f331113e"
+  integrity sha512-amhDQtvfaOi4Lu8DUUYoG9r0RxcDn/aLr/4QUsnGugTpf+pqVgBbFIl5efSsUZbXqCqyY2M5KLi1qb2Qo3s8dA==
+  dependencies:
+    "@ton-community/func-js-bin" "0.4.6"
     arg "^5.0.2"
 
-"@ton/blueprint@^0.25.0":
-  version "0.25.0"
-  resolved "https://registry.yarnpkg.com/@ton/blueprint/-/blueprint-0.25.0.tgz#47005282d5fb827491f2d4f318983ff7cd0628a2"
-  integrity sha512-ji5VnGNt/j68Zkp9CB5P1JV1AHN99fHdP7+sKtOo+qIlO6c09vSLhTvGcWu70KOYPj27SRGBSQbpWdBreX/OhA==
+"@ton/blueprint@^0.27.0":
+  version "0.27.0"
+  resolved "https://registry.yarnpkg.com/@ton/blueprint/-/blueprint-0.27.0.tgz#1e196abf140d7b600b3b24b7675e1ead0145cf04"
+  integrity sha512-0jpZVJGhRNg5lsdoV7znI7RjJWY76wbVXR3Ei7bVXEjOMKosPgJejKQOye/XYVup4COkC+/rkXQ5TXPKcRut9g==
   dependencies:
     "@tact-lang/compiler" "^1.4.0"
-    "@ton-community/func-js" "^0.7.0"
+    "@ton-api/client" "^0.2.0"
+    "@ton-api/ton-adapter" "^0.2.0"
+    "@ton-community/func-js" "^0.9.0"
     "@ton/tolk-js" "^0.6.0"
     "@tonconnect/sdk" "^2.2.0"
     arg "^5.0.2"
@@ -716,10 +730,10 @@
     jssha "3.2.0"
     tweetnacl "1.0.3"
 
-"@ton/sandbox@^0.22.0":
-  version "0.22.0"
-  resolved "https://registry.yarnpkg.com/@ton/sandbox/-/sandbox-0.22.0.tgz#76a3b724f40be18512df748deee6c5d5ff0a96fb"
-  integrity sha512-ilvKtyAGxJyEbIwITlx1y78oDmJyvT+pkLfVm4952NjxZpANdG2nZ8/mBGJlWph9FZtxxXCjCf/79hNihC6P6A==
+"@ton/sandbox@^0.23.0":
+  version "0.23.0"
+  resolved "https://registry.yarnpkg.com/@ton/sandbox/-/sandbox-0.23.0.tgz#c3b6ee0b9c057650a32d0c9ebf770a77e0832421"
+  integrity sha512-V0PfjefTJbpBvsE1b5851LyuZlOXuBZnvxtCKrvK/wDlw348dCnUJuBvWuApZ5RGXq36xJ07XBoYl6sMuS0Xug==
 
 "@ton/test-utils@^0.4.2":
   version "0.4.2"
@@ -876,12 +890,12 @@
   dependencies:
     undici-types "~6.19.2"
 
-"@types/node@^22.9.1":
-  version "22.9.1"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.9.1.tgz#bdf91c36e0e7ecfb7257b2d75bf1b206b308ca71"
-  integrity sha512-p8Yy/8sw1caA8CdRIQBG5tiLHmxtQKObCijiAa9Ez+d4+PRffM4054xbju0msf+cvhJpnFEeNjxmVT/0ipktrg==
+"@types/node@^22.10.7":
+  version "22.10.7"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-22.10.7.tgz#14a1ca33fd0ebdd9d63593ed8d3fbc882a6d28d7"
+  integrity sha512-V09KvXxFiutGp6B7XkpaDXlNadZxrzajcY50EuoLIpQ6WWYCSvf19lVIazzfIzQvhUN2HjX12spLojTnhuKlGg==
   dependencies:
-    undici-types "~6.19.8"
+    undici-types "~6.20.0"
 
 "@types/stack-utils@^2.0.0":
   version "2.0.3"
@@ -1353,6 +1367,11 @@ convert-source-map@^2.0.0:
   version "2.0.0"
   resolved "https://registry.yarnpkg.com/convert-source-map/-/convert-source-map-2.0.0.tgz#4b560f649fc4e918dd0ab75cf4961e8bc882d82a"
   integrity sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==
+
+core-js-pure@^3.38.0:
+  version "3.39.0"
+  resolved "https://registry.yarnpkg.com/core-js-pure/-/core-js-pure-3.39.0.tgz#aa0d54d70a15bdc13e7c853db87c10abc30d68f3"
+  integrity sha512-7fEcWwKI4rJinnK+wLTezeg2smbFFdSBP6E2kQZNbnzM2s1rpKQ6aaRteZSSg7FLU3P0HGGVo/gbpfanU36urg==
 
 crc-32@1.2.2:
   version "1.2.2"
@@ -2720,10 +2739,10 @@ prando@^6.0.1:
   resolved "https://registry.yarnpkg.com/prando/-/prando-6.0.1.tgz#ffa8de84c2adc4975dd9df37ae4ada0458face53"
   integrity sha512-ghUWxQ1T9IJmPu6eshc3VU0OwveUtXQ33ZLXYUcz1Oc5ppKLDXKp0TBDj6b0epwhEctzcQSNGR2iHyvQSn4W5A==
 
-prettier@^3.3.3:
-  version "3.3.3"
-  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.3.3.tgz#30c54fe0be0d8d12e6ae61dbb10109ea00d53105"
-  integrity sha512-i2tDNA0O5IrMO757lfrdQZCc2jPNDVntV0m/+4whiDfWaTKfMNgR7Qz0NAeGz/nRqF4m5/6CLzbP4/liHt12Ew==
+prettier@^3.4.2:
+  version "3.4.2"
+  resolved "https://registry.yarnpkg.com/prettier/-/prettier-3.4.2.tgz#a5ce1fb522a588bf2b78ca44c6e6fe5aa5a2b13f"
+  integrity sha512-e9MewbtFo+Fevyuxn/4rrcDAaq0IYxPGLvObpQjiZBMAzB9IGmzlnG9RZy3FFas+eBMu2vA0CszMeduow5dIuQ==
 
 pretty-format@^29.0.0, pretty-format@^29.7.0:
   version "29.7.0"
@@ -3158,10 +3177,10 @@ type-fest@^0.21.3:
   resolved "https://registry.yarnpkg.com/type-fest/-/type-fest-0.21.3.tgz#d260a24b0198436e133fa26a524a6d65fa3b2e37"
   integrity sha512-t0rzBq87m3fVcduHDUFhKmyyX+9eo6WQjZvf51Ea/M0Q7+T374Jp1aUiyUl0GKxp8M/OETVHSDvmkyPgvX+X2w==
 
-typescript@^5.6.3:
-  version "5.6.3"
-  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.6.3.tgz#5f3449e31c9d94febb17de03cc081dd56d81db5b"
-  integrity sha512-hjcS1mhfuyi4WW8IWtjP7brDrG2cuDZukyrYrSauoXGNgx0S7zceP07adYkJycEr56BOUTNPzbInooiN3fn1qw==
+typescript@^5.7.3:
+  version "5.7.3"
+  resolved "https://registry.yarnpkg.com/typescript/-/typescript-5.7.3.tgz#919b44a7dbb8583a9b856d162be24a54bf80073e"
+  integrity sha512-84MVSjMEHP+FQRPy3pX9sTVV/INIex71s9TL2Gm5FG/WG1SqXeKyZ0k7/blY/4FdOzI12CBy1vGc4og/eus0fw==
 
 uint8arrays@^3.0.0:
   version "3.1.1"
@@ -3170,10 +3189,15 @@ uint8arrays@^3.0.0:
   dependencies:
     multiformats "^9.4.2"
 
-undici-types@~6.19.2, undici-types@~6.19.8:
+undici-types@~6.19.2:
   version "6.19.8"
   resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-6.19.8.tgz#35111c9d1437ab83a7cdc0abae2f26d88eda0a02"
   integrity sha512-ve2KP6f/JnbPBFyobGHuerC9g1FYGn/F8n1LWTwNxCEzd6IfqTwUQcNXgEtmmQ6DlRrC1hrSrBnCZPokRrDHjw==
+
+undici-types@~6.20.0:
+  version "6.20.0"
+  resolved "https://registry.yarnpkg.com/undici-types/-/undici-types-6.20.0.tgz#8171bf22c1f588d1554d55bf204bc624af388433"
+  integrity sha512-Ny6QZ2Nju20vw1SRHe3d9jVu6gJ+4e3+MMpqu7pqE5HT6WsTSlce++GQmK5UXS8mzV8DSYHrQH+Xrf2jVcuKNg==
 
 update-browserslist-db@^1.1.0:
   version "1.1.1"

@@ -1,7 +1,7 @@
 # TACT Web Sample
 
 ```sh
-npm i
+yarn
 
 npm run dev
 ```

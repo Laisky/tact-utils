@@ -91,7 +91,7 @@ describe('NFT', () => {
         });
         expect(tx.transactions).toHaveTransaction({
             from: nftItemContract.address,
-            to: forwardReceiver.address,
+            to: user.address,
             success: true,
             op: 0x05138d91, // OwnershipAssigned
         });
@@ -141,7 +141,7 @@ describe('NFT', () => {
         });
         expect(tx.transactions).toHaveTransaction({
             from: nftItemContract.address,
-            to: forwardReceiver.address,
+            to: admin.address,
             success: true,
             op: 0x05138d91, // OwnershipAssigned
         });

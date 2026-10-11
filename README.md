@@ -23,6 +23,10 @@ Provides ready-to-use templates for Jetton, NFT, Traits, as well as some commonl
     - [Jetton](#jetton)
     - [NFT](#nft)
   - [Helpful Traits](#helpful-traits)
+    - [Common](#common)
+      - [Convert hashed value from `Int` to hex `String`](#convert-hashed-value-from-int-to-hex-string)
+      - [Onchain full-SHA256](#onchain-full-sha256)
+      - [Verify Merkle root on-chain](#verify-merkle-root-on-chain)
     - [Txable](#txable)
     - [Upgradale](#upgradale)
     - [Jetton](#jetton-1)
@@ -70,8 +74,8 @@ npx blueprint run --testnet --tonconnect helloworld
 > You don't need to use the Sample directly in your project;
 > rather, you should utilize the contracts and code in `jetton` and `common` as per your requirements.
 
--   [Sample Transaction](https://testnet.tonviewer.com/transaction/5fd248e34b3cb728aff786e990ac45324a2f070d89d9356fdac47fa61444813a)
--   [Sequence Diagram](https://github.com/Laisky/tact-utils/blob/main/contracts/jetton/README.md)
+- [Sample Transaction](https://testnet.tonviewer.com/transaction/5fd248e34b3cb728aff786e990ac45324a2f070d89d9356fdac47fa61444813a)
+- [Sequence Diagram](https://github.com/Laisky/tact-utils/blob/main/contracts/jetton/README.md)
 
 ```sh
 npx blueprint build sample
@@ -106,8 +110,8 @@ jetton wallet balance: 19000000000
 > You don't need to use the Sample directly in your project;
 > rather, you should utilize the contracts and code in `nft` and `common` as per your requirements.
 
--   [Sample Transaction](https://testnet.tonviewer.com/transaction/aef4b07e37d012e9b8051c1c4f2bcb263194b72d7f874218271595824b62a0bd)
--   [Sequence Diagram](https://github.com/Laisky/tact-utils/blob/main/contracts/nft/README.md)
+- [Sample Transaction](https://testnet.tonviewer.com/transaction/aef4b07e37d012e9b8051c1c4f2bcb263194b72d7f874218271595824b62a0bd)
+- [Sequence Diagram](https://github.com/Laisky/tact-utils/blob/main/contracts/nft/README.md)
 
 ```sh
 npx blueprint build sample
@@ -146,6 +150,113 @@ Then import the traits you need:
 ```js
 import './tact-utils/contracts/common/traits.tact';
 import './tact-utils/contracts/common/messages.tact';
+```
+
+### Common
+
+```js
+import './tact-utils/contracts/common/traits.tact';
+
+contract YOUR_CONTRACT with Common {
+    owner: Address;
+}
+```
+
+#### Convert hashed value from `Int` to hex `String`
+
+In the Common Trait, there is a function named `int2hex(Int): String` that can convert a hash value of type `Int` to a hexadecimal string of type `String`.
+
+#### Onchain full-SHA256
+
+In Tact, the `sha256` function truncates the input string, keeping only the first 128 bytes. Therefore, a `fullSha256` function is re-implemented in `common` to compute the complete sha256.
+
+In `common/traits.tact`, there is both a function named `fullSha256` and a method named `fullSha256` that belongs to the Common trait.
+
+```js
+// Contract
+contract YOURCONTRACT with Common {
+    get fun testStrHash(v1: String, v2: String): String {
+        let hashed = beginString()
+            .concat(v1)
+            .concat(v2)
+            .toString();
+
+        return self.int2hex(self.fullSha256(hashed));
+    }
+}
+
+// Test script
+it("hash string onchain", async () => {
+    const v1 = "4d2377d0bc3befe8a721e96b13e22d3b4e557024353e69e2b5d0f315ad49aa05";
+    const v2 = "551f6c3e8d7ae7d9b3ac53bca9b6f82cff322fb16113820776d14a3f93b93951";
+
+    const gotHash = await sampleMaster.getTestStrHash(v1, v2);
+    const expectHash = (await sha256(v1 + v2)).toString('hex');
+
+    console.log(BigInt("0x"+(await sha256(v1 + v2)).toString('hex')));
+
+    expect(gotHash).toEqual(expectHash);
+});
+```
+
+#### Verify Merkle root on-chain
+
+In `common/traits.tact`, there is a function named `verifyMerkleSha256(MerkleProof)` that can verify the Merkle root on-chain.
+
+```js
+// Contract
+contract YOURCONTRACT with Common {
+    get fun testVerifyMerkleProof(msg: VerifyMerkleProof) {
+        self.verifyMerkleSha256(msg.proof);
+    }
+}
+
+// Test script
+const generateMerkleProof = async (data: Cell) => {
+    const d0 = comment("hello");
+    const d1 = comment("world");
+
+    let proofs = [];
+    proofs.push(
+        d0.hash().toString("hex"),
+        d1.hash().toString("hex"),
+    );
+
+    let root;
+    root = (await sha256(data.hash().toString('hex') + d0.hash().toString('hex'))).toString('hex');
+    root = (await sha256(root + d1.hash().toString('hex'))).toString('hex');
+
+    console.log(`proofs: ${proofs}`);
+    return {
+        proofs,
+        root,
+    };
+};
+
+it("merkle onchain", async () => {
+    const data = comment('abc');
+    const { proofs, root } = await generateMerkleProof(data);
+
+    let proof = Dictionary.empty<number, bigint>();
+    for (let i = 0; i < proofs.length; i++) {
+        proof = proof.set(i, BigInt(`0x${proofs[i]}`));
+    }
+
+    await sampleMaster.getTestVerifyMerkleProof(
+        {
+            $$type: "VerifyMerkleProof",
+            queryId: BigInt(Math.floor(Date.now() / 1000)),
+            proof: {
+                $$type: "MerkleProof",
+                data: data,
+                root: BigInt(`0x${root}`),
+                proof: proof,
+                proofLen: BigInt(proofs.length),
+            },
+        }
+    );
+});
+
 ```
 
 ### Txable
@@ -221,10 +332,10 @@ contract YOUR_CONTRACT with JettonMaster {
 
 ## Helpful Tools
 
--   [TON Converter](https://ario.laisky.com/alias/ton-converter)
--   [Free permanent file storage.](https://ario.laisky.com/alias/doc)
+- [TON Converter](https://ario.laisky.com/alias/ton-converter)
+- [Free permanent file storage.](https://ario.laisky.com/alias/doc)
 
 ## Helpful Communites
 
--   [TON Tact Language Chat](https://t.me/tactlang)
--   [TON Dev Chat (EN)](https://t.me/tondev_eng)
+- [TON Tact Language Chat](https://t.me/tactlang)
+- [TON Dev Chat (EN)](https://t.me/tondev_eng)

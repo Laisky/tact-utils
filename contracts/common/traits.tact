@@ -4,6 +4,27 @@ import "@stdlib/deploy";
 import "./errcodes.tact";
 import "./messages.tact";
 
+// The native sha256 in Tact truncates the input, computing only the first 128 bytes.
+// Using fullSha256 allows computing the complete sha256 value.
+//
+// - https://github.com/tact-lang/tact/issues/1056
+// - https://docs.tact-lang.org/book/assembly-functions/#onchainsha256
+fun fullSha256(data: String): Int {
+    _onchainShaPush(data);
+    while (_onchainShaShouldProceed()) {
+        _onchainShaOperate();
+    }
+    return _onchainShaHashExt();
+}
+
+// Helper assembly functions,
+// each manipulating the stack in their own ways
+// in different parts of the `fullSha256()` function
+asm fun _onchainShaPush(data: String) { ONE }
+asm fun _onchainShaShouldProceed(): Bool { OVER SREFS 0 NEQINT }
+asm fun _onchainShaOperate() { OVER LDREF s0 POP CTOS s0 s1 XCHG INC }
+asm fun _onchainShaHashExt(): Int { HASHEXT_SHA256 }
+
 trait Txable {
     owner: Address;
     // staticTax is the tax fee that is charged for each transaction.
@@ -67,7 +88,7 @@ trait Common with Txable, Deployable {
         self.receiveWithdraw();
     }
 
-    get fun balance(): Int {
+    get fun tonBalance(): Int {
         return myBalance();
     }
 
@@ -93,10 +114,11 @@ trait Common with Txable, Deployable {
         );
     }
 
-    fun verifyMerkleSha256(proof: MerkleProof) {
-        // BUG: will be fixed in https://github.com/tact-lang/tact/issues/1056
-        nativeThrowUnless(codeNotImplemented, true);
+    fun fullSha256(data: String): Int {
+        return fullSha256(data);
+    }
 
+    fun verifyMerkleSha256(proof: MerkleProof) {
         nativeThrowUnless(codeMerkleNotEnoughProof, proof.proofLen > 1);
 
         let cur = proof.data.hash();
@@ -106,9 +128,7 @@ trait Common with Txable, Deployable {
 
             nativeThrowUnless(codeMerkleInvalidNullRight, right != null);
 
-            dump(self.int2hex(cur));
-            dump(self.int2hex(right!!));
-            cur = sha256(beginString()
+            cur = self.fullSha256(beginString()
                 .concat(self.int2hex(cur))
                 .concat(self.int2hex(right!!))
                 .toString());
@@ -122,7 +142,7 @@ trait Common with Txable, Deployable {
     // can be used to reserve the balance for SendRemainingBalance.
     // default to reserve the balance before current transaction plus staticTax.
     //
-    // if lockedValue has been increased, the delta should be positive.
+    // delta is an additional reserve adjustment; updated lockedValue is already included.
     virtual fun reserveValue(delta: Int) {
         let ctx = context();
         let val = max((myBalance() - ctx.value) + self.staticTax, self.lockedValue + self.staticTax);
